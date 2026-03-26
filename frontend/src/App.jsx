@@ -1,14 +1,14 @@
-import { useState } from 'react'
-import './index.css'
-import LandingPage from './LandingPage'
-import AppView from './AppView'
+import { BrowserRouter } from 'react-router-dom';
+import { ToastProvider } from './components/common/Toast';
+import AnimatedRoutes from './components/AnimatedRoutes';
+import './index.css';
 
 export default function App() {
-  const [view, setView] = useState('landing') // 'landing' | 'app'
-
-  if (view === 'app') {
-    return <AppView onBack={() => setView('landing')} />
-  }
-
-  return <LandingPage onStart={() => setView('app')} />
+  return (
+    <ToastProvider>
+      <BrowserRouter>
+        <AnimatedRoutes />
+      </BrowserRouter>
+    </ToastProvider>
+  );
 }
