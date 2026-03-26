@@ -2,10 +2,10 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "Whisper SaaS MVP"
-    S3_BUCKET: str = "transcriptions-bucket"
+    R2_BUCKET_NAME: str = "whisper-saas-audio"
     R2_ACCOUNT_ID: str = ""
-    S3_ACCESS_KEY: str = ""
-    S3_SECRET_KEY: str = ""
+    R2_ACCESS_KEY_ID: str = ""
+    R2_SECRET_ACCESS_KEY: str = ""
     RUNPOD_API_KEY: str = ""
     RUNPOD_ENDPOINT_ID: str = ""
     
