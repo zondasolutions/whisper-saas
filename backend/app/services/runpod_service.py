@@ -1,0 +1,29 @@
+import requests
+from app.core.config import settings
+from fastapi import HTTPException
+
+def submit_transcription_job(audio_url: str) -> str:
+    """Submits a job to the RunPod serverless endpoint."""
+    if not settings.RUNPOD_ENDPOINT_ID or not settings.RUNPOD_API_KEY:
+        # Simulate local development by returning a dummy Job ID
+        return "local-dummy-job-1234"
+
+    url = f"https://api.runpod.ai/v2/{settings.RUNPOD_ENDPOINT_ID}/run"
+    headers = {
+        "Authorization": f"Bearer {settings.RUNPOD_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "input": {
+            "audio_url": audio_url
+        }
+    }
+    
+    response = requests.post(url, headers=headers, json=payload)
+    if response.status_code != 200:
+        raise HTTPException(
+            status_code=500, 
+            detail=f"RunPod execution failed: {response.text}"
+        )
+        
+    return response.json().get("id")

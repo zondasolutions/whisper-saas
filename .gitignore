@@ -1,0 +1,102 @@
+# =========================
+# Entornos y Secretos (¡CRÍTICO!)
+# =========================
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials.json
+
+# =========================
+# Python (Backend & Worker)
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Entornos virtuales
+venv/
+.venv/
+env/
+.env/
+ENV/
+env.bak/
+venv.bak/
+
+# Logs y bases de datos locales
+*.log
+*.sqlite3
+*.db
+celerybeat-schedule
+celerybeat.pid
+
+# ML / Modelos (Evita subir pesos descargados localmente)
+models/
+weights/
+*.pt
+*.bin
+*.safetensors
+
+# =========================
+# Node.js / React / Vite (Frontend)
+# =========================
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.npm
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.eslintcache
+
+# =========================
+# Docker
+# =========================
+# Si montas volúmenes locales para persistencia de datos en desarrollo
+.docker-data/
+db-data/
+redis-data/
+postgres-data/
+
+# =========================
+# Archivos subidos temporalmente
+# =========================
+uploads/
+temp/
+tmp/
+*.mp3
+*.wav
+*.m4a
+*.ogg
+*.flac
+
+# =========================
+# IDEs y SO
+# =========================
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
