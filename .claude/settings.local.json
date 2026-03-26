@@ -1,0 +1,34 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:stitch.withgoogle.com)",
+      "WebFetch(domain:github.com)",
+      "Bash(npm --version)",
+      "Bash(gcloud --version)",
+      "Skill(update-config)",
+      "Bash(claude mcp:*)",
+      "Bash(where gcloud:*)",
+      "Bash(echo $GOOGLE_CLOUD_PROJECT)",
+      "Read(//c/Users/verdi/OneDrive/Escritorio/zondaSolutions/whisper-saas/$APPDATA/gcloud/**)",
+      "Bash(npm install:*)",
+      "Bash(npx --no @_davideast/stitch-mcp --version)",
+      "mcp__stitch__create_project",
+      "mcp__stitch__list_projects",
+      "mcp__stitch__list_design_systems",
+      "Bash(gcloud auth:*)",
+      "Bash(npx:*)",
+      "Bash(npm show:*)",
+      "mcp__stitch__create_design_system",
+      "mcp__stitch__apply_design_system",
+      "mcp__stitch__generate_screen_from_text",
+      "mcp__stitch__list_screens",
+      "mcp__stitch__get_project",
+      "mcp__stitch__update_design_system",
+      "mcp__stitch__get_screen",
+      "WebFetch(domain:contribution.usercontent.google.com)",
+      "Bash(curl -s \"https://contribution.usercontent.google.com/download?c=CgthaWRhX2NvZGVmeBJ7Eh1hcHBfY29tcGFuaW9uX2dlbmVyYXRlZF9maWxlcxpaCiVodG1sX2EyMTUyMjFmOTQ1YjQ1NTdhZmU1Mjk4M2ZiY2EzMTkyEgsSBxCso_6Z_R8YAZIBIwoKcHJvamVjdF9pZBIVQhMzNDY2NDE3MTU0NzQyMDkzMzg0&filename=&opi=96797242\" -o \"C:/Users/verdi/OneDrive/Escritorio/zondaSolutions/whisper-saas/frontend/stitch_landing.html\")",
+      "Bash(npm run:*)"
+    ]
+  }
+}
