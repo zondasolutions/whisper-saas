@@ -22,24 +22,49 @@ export default function AppView() {
 
         try {
             setStatus('uploading');
-            // 1. Upload the file
+            // Step 1 & 2: Get presigned URL and upload directly to R2
             const uploadRes = await apiClient.upload(file);
+            const fileKey = uploadRes.file_key;
 
             setStatus('processing');
-            // 2. Transcribe using the returned file ID or path
-            // Note: adjust the 'uploadRes.file_id' or similar depending on the exact backend response structure.
-            const fileId = uploadRes.file_id || uploadRes.filename || 'default_id';
-            const transcribeRes = await apiClient.transcribe(fileId);
+            // Step 3: Submit transcription job to RunPod via backend
+            const transcribeRes = await apiClient.transcribe(fileKey);
+            const jobId = transcribeRes.job_id;
 
-            setResult(transcribeRes);
-            setStatus('done');
-            showToast('Transcription completed successfully!', 'success');
+            // Step 4: Poll for result (every 3s, timeout after 5 min)
+            const MAX_POLLS = 100;
+            for (let i = 0; i < MAX_POLLS; i++) {
+                await new Promise(resolve => setTimeout(resolve, 3000));
+                const statusRes = await apiClient.getStatus(jobId);
+
+                if (statusRes.status === 'completed') {
+                    setResult(statusRes.transcript);
+                    setStatus('done');
+                    showToast('Transcription completed successfully!', 'success');
+                    return;
+                } else if (statusRes.status === 'failed') {
+                    throw new Error(statusRes.error || 'Transcription failed on GPU worker');
+                } else if (statusRes.status === 'local_mode') {
+                    // Dev mode: RunPod not configured, show placeholder result
+                    setResult({
+                        segments: [
+                            { speaker: 'Speaker 1', start: 0, text: 'Backend connected. Configure RUNPOD_API_KEY to enable real GPU transcription.' }
+                        ]
+                    });
+                    setStatus('done');
+                    showToast('Local mode: RunPod not configured.', 'success');
+                    return;
+                }
+                // status === 'processing' → keep polling
+            }
+            throw new Error('Transcription timed out after 5 minutes.');
         } catch (error) {
             console.error(error);
             showToast(error.message || 'An error occurred during transcription.', 'error');
             setStatus('idle');
         }
     };
+
 
     const reset = () => {
         setFile(null);
