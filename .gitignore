@@ -52,7 +52,7 @@ celerybeat-schedule
 celerybeat.pid
 
 # ML / Modelos (Evita subir pesos descargados localmente)
-models/
+ml_models/
 weights/
 *.pt
 *.bin

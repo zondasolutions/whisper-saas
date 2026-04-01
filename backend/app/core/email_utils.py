@@ -5,7 +5,7 @@ from pathlib import Path
 from datetime import datetime
 import token
 from loguru import logger as log
-from app.core.config import settings
+from .config import settings
 
 def send_reset_email(to_email: str, token: str):
     """
