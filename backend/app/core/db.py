@@ -8,16 +8,87 @@ from urllib.parse import quote_plus
 from loguru import logger as log
 from ..core.config import settings
 
-
 Base = declarative_base()
 
-engine = create_engine(
-    settings.DATABASE_URL, 
-    pool_pre_ping=True
-)
+engine_kwargs = {
+    "poolclass": QueuePool,
+    "pool_size": 5,
+    "max_overflow": 10,
+    "pool_pre_ping": True,
+    "pool_recycle": 3600,
+    "connect_args": {
+        "connect_timeout": 5
+    }
+}
+
+basedir = os.path.abspath(Path(__file__).parents[2])
+load_dotenv(os.path.join(basedir, '.env'))
+
+SQLALCHEMY_DATABASE_URL = settings.DATABASE_URL
+
+try:
+    engine = create_engine(SQLALCHEMY_DATABASE_URL, **engine_kwargs)
+except Exception as e:
+    raise ValueError(f"Error al crear el motor de base de datos Postgres: {e}")
 
 SessionLocal = sessionmaker(
-    autocommit=False, 
-    autoflush=False, 
-    bind=engine
+    autocommit=False,
+    autoflush=False,
+    bind=engine,
+    expire_on_commit=False
 )
+
+def get_db_session():
+    """
+    Generador de sesiones de base de datos con manejo de errores
+    """
+    db = SessionLocal()
+    try:
+        yield db
+    except Exception as e:
+        db.rollback()
+        raise
+    finally:
+        db.close()
+
+def check_database_connection():
+    """
+    Verifica si la conexión a la base de datos funciona
+    """
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        return True
+    except Exception as e:
+        log.error(f"Error en conexión a Postgres: {e}")
+        return False
+
+def create_tables():
+    """
+    Crear todas las tablas definidas en los modelos
+    """
+    try:
+        Base.metadata.create_all(bind=engine)
+    except Exception as e:
+        raise ValueError(f"Error al crear las tablas en Postgres: {e}")
+
+def get_database_info():
+    """
+    Obtiene información de la base de datos Postgres
+    """
+    try:
+        with engine.connect() as conn:
+            result = conn.execute("SELECT VERSION()")
+            version = result.scalar()
+            
+            result = conn.execute(text("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'"))
+            tables = [row[0] for row in result]
+            
+            return {
+                "version": version,
+                "tables": tables,
+                "database": settings.DB_NAME,
+                "host": settings.DB_HOST
+            }
+    except Exception as e:
+        return {"error": str(e)}
