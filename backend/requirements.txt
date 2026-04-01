@@ -13,3 +13,5 @@ python-dotenv==1.1.0
 loguru==0.7.3
 mercadopago==2.3.0
 httpx==0.28.1
+sqlalchemy_filters==0.13.0
+
