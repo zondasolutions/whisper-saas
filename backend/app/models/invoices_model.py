@@ -1,18 +1,18 @@
-
-from tokenize import String
-
-from sqlalchemy import DateTime, Float, Float, ForeignKey, func
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+# invoices_model.py
+import uuid
+from datetime import datetime
+from sqlalchemy import String, Numeric, ForeignKey, DateTime
+from sqlalchemy.orm import relationship, Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import UUID
 from .base_model import BaseModel
 
-class Invoices(BaseModel):
+class Invoice(BaseModel):
     __tablename__ = "invoices"
     
-    subscription_id: Mapped[int] = mapped_column(UUID, ForeignKey('subscriptions.id'), nullable=False)
-    amount: Mapped[float] = mapped_column(Float, nullable=False)
-    status: Mapped[str] = mapped_column(String(50), nullable=False, default='pending')
-    mercadopago_payment_id: Mapped[str] = mapped_column(String(255), nullable=True)
-    biling_date: Mapped[DateTime] = mapped_column(DateTime, nullable=True)
+    subscription_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("subscriptions.id"), nullable=False)
+    mercadopago_payment_id: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True)
+    amount: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
+    status: Mapped[str] = mapped_column(String(50), nullable=False, default="pending")
+    billing_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     
-    subscription = relationship("Subscription", back_populates="invoices")
+    subscription: Mapped["Subscription"] = relationship("Subscription", back_populates="invoices")
