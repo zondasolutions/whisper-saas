@@ -14,4 +14,8 @@ loguru==0.7.3
 mercadopago==2.3.0
 httpx==0.28.1
 sqlalchemy_filters==0.13.0
-
+alembic==1.18.4
+pydantic[email]==2.12.5
+passlib[argon2]==1.7.4
+python-jose[cryptography]==3.5.0
+argon2-cffi==25.1.0

@@ -50,6 +50,7 @@ venv.bak/
 *.db
 celerybeat-schedule
 celerybeat.pid
+versions/
 
 # ML / Modelos (Evita subir pesos descargados localmente)
 ml_models/
