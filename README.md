@@ -17,4 +17,4 @@ Data is uploaded via strict presigned PUT URL and directly dispatched to the con
 docker compose up --build
 ```
 
-Then visit `http://localhost:8000/docs` to test the API endpoints.
+Then visit `http://localhost:8000/docs` to test the API endpoints-
