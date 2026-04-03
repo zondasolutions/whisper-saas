@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .api.endpoints import upload, transcribe, status
@@ -5,9 +6,13 @@ from .api.endpoints.v1.users import user_router
 
 app = FastAPI(title="Whisper SaaS Config - MVP Backend", version="1.0.0")
 
+# Read allowed origins from env var (comma-separated) — no rebuild needed when adding new frontends
+_raw_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:3000")
+allowed_origins = [o.strip() for o in _raw_origins.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
