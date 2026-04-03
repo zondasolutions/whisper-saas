@@ -31,7 +31,12 @@ def handler(job):
 
     # Ephemeral secure processing — unique temp paths per job
     temp_id = str(uuid.uuid4())
-    local_audio_path = f"/tmp/{temp_id}_audio.tmp"
+    # Extract real file extension from the URL path (before query params)
+    # e.g. ".mp3", ".m4a", ".wav" — Whisper/ffmpeg needs this to detect the codec
+    from urllib.parse import urlparse
+    url_path = urlparse(audio_url).path
+    file_ext = os.path.splitext(url_path)[1] or ".mp3"
+    local_audio_path = f"/tmp/{temp_id}_audio{file_ext}"
     output_json_path = f"/tmp/{temp_id}_transcript.json"
 
     hf_token = os.environ.get("HF_TOKEN")
