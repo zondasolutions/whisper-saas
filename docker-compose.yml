@@ -1,12 +1,26 @@
 version: '3.8'
 
 services:
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: whisper_user
+      POSTGRES_PASSWORD: whisper_password
+      POSTGRES_DB: whisper_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     ports:
       - "8001:8000"
+    depends_on:
+      - db
     environment:
       - PROJECT_NAME="Whisper SaaS MVP"
       - R2_BUCKET_NAME=${R2_BUCKET_NAME}
@@ -16,7 +30,19 @@ services:
       - RUNPOD_API_KEY=${RUNPOD_API_KEY}
       - RUNPOD_ENDPOINT_ID=${RUNPOD_ENDPOINT_ID}
       - HF_TOKEN=${HF_TOKEN}
-      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:5173}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
+      # Variables de la base de datos
+      - DB_USER=whisper_user
+      - DB_PASS=whisper_password
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=whisper_db
+      - DB_SCHEMA=public
+      - DB_DRIVER=postgresql+psycopg
     volumes:
       - ./backend:/app
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2
+
+volumes:
+  postgres_data:
+
