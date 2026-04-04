@@ -40,6 +40,33 @@ export default function AppView() {
                 if (statusRes.status === 'completed') {
                     setResult(statusRes.transcript);
                     setStatus('done');
+
+                    try {
+                        const history = JSON.parse(localStorage.getItem('whisper_history_v1') || '[]');
+                        
+                        // Try to estimate duration from last segment
+                        let dur = "00:00";
+                        if (statusRes.transcript?.segments?.length > 0) {
+                            const lastSeg = statusRes.transcript.segments[statusRes.transcript.segments.length - 1];
+                            const s = lastSeg.start + 5;
+                            const m = Math.floor(s / 60);
+                            const sec = Math.floor(s % 60);
+                            dur = `${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+                        }
+
+                        history.unshift({
+                            id: Date.now().toString(),
+                            name: file.name,
+                            date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                            duration: dur,
+                            status: 'Completed',
+                            result: statusRes.transcript
+                        });
+                        localStorage.setItem('whisper_history_v1', JSON.stringify(history));
+                    } catch (e) {
+                        console.error('Failed to save history', e);
+                    }
+
                     showToast('Transcription completed successfully!', 'success');
                     return;
                 } else if (statusRes.status === 'failed') {
@@ -104,7 +131,12 @@ export default function AppView() {
                     </>
                 )}
 
-                {currentView === 'history' && <HistoryView />}
+                {currentView === 'history' && <HistoryView onViewResult={(item) => {
+                    setResult(item.result);
+                    setFile({ name: item.name });
+                    setStatus('done');
+                    setCurrentView('new');
+                }} />}
 
                 {currentView === 'settings' && <SettingsView />}
             </main>

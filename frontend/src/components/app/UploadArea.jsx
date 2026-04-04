@@ -1,19 +1,49 @@
 import { useRef, useState } from 'react';
+import { useToast } from '../common/Toast';
 
 export default function UploadArea({ file, setFile, onTranscribe }) {
     const [isDragging, setIsDragging] = useState(false);
     const fileInputRef = useRef(null);
+    const { showToast } = useToast();
+
+    // Placeholder until Auth Context is integrated
+    const isLoggedIn = false; 
+
+    const validateAndSetFile = (f) => {
+        if (!f) return;
+
+        const audio = new Audio();
+        const objectUrl = URL.createObjectURL(f);
+        
+        audio.onloadedmetadata = () => {
+            URL.revokeObjectURL(objectUrl);
+            const limitSeconds = 3 * 60;
+            
+            if (!isLoggedIn && audio.duration > limitSeconds) {
+                showToast(`Para cuentas gratuitas el límite es de 3 minutos. Su archivo dura ${Math.floor(audio.duration / 60)}m ${Math.floor(audio.duration%60)}s. Registrate o acorta el audio.`, 'error');
+                return;
+            }
+            setFile(f);
+        };
+        audio.onerror = () => {
+            URL.revokeObjectURL(objectUrl);
+            setFile(f); // Fallback if metadata read fails
+        }
+        audio.src = objectUrl;
+    };
 
     const handleDrop = (e) => {
         e.preventDefault();
         setIsDragging(false);
         const f = e.dataTransfer.files?.[0];
-        if (f) setFile(f);
+        validateAndSetFile(f);
     };
 
     const handleFileChange = (e) => {
         const f = e.target.files?.[0];
-        if (f) setFile(f);
+        validateAndSetFile(f);
+        // Reset input so same file can be selected again
+        if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
     return (
@@ -80,7 +110,7 @@ export default function UploadArea({ file, setFile, onTranscribe }) {
                 >
                     Transcribe Now
                 </button>
-                <p className="text-xs text-on-surface-variant mt-3">Free tier: max 5 minutes · No credit card required</p>
+                <p className="text-xs text-on-surface-variant mt-3">Transripciones sin registro: máx 3 minutos.</p>
             </div>
         </div>
     );
