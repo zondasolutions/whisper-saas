@@ -1,3 +1,5 @@
+from ..schemas.plan_schema import PlanDetailSchema
+
 from ..repositories.plan_repo import PlanRepo
 from uuid import UUID
 
@@ -18,3 +20,6 @@ class PlanService:
 
     def delete_plan(self, plan_id: UUID):
         return self.plan_repo.delete(plan_id)
+
+    def update_plan_details(self, plan_id: UUID, plan_details: PlanDetailSchema):
+        return self.plan_repo.update_plan_details(plan_id, plan_details)
