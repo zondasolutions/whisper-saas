@@ -34,7 +34,7 @@ class UserService:
         if user_data.email and user_data.email != existing_user.email:
             if self.email_exists(user_data.email):
                 raise BadRequestError(detail="User Service says: Email already exists for another user.")
-        updated_user = self.__user_repo.update(db_obj=existing_user, obj_in=user_data)        
+        updated_user = self.__user_repo.update(id=user_id, db_obj=existing_user, obj_in=user_data)        
         if not updated_user:
             raise BadRequestError(detail="UserService says: Failed to update user.")
         return updated_user
@@ -42,6 +42,6 @@ class UserService:
         existing_user = self.__user_repo.find_by_id(id=user_id)
         if not existing_user:
             raise RouteNotFoundError(detail=f"UserService says: User with ID '{user_id}' not found.")
-        success = self.__user_repo.delete(user_id)
+        success = self.__user_repo.delete(id=user_id)
         if not success:
             raise BadRequestError(detail="UserService says: Failed to delete user.")
