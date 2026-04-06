@@ -7,7 +7,6 @@ from ..utils.security import get_password_hash
 from ..models.user_model import User
 
 from uuid import UUID
-from typing import Any
 
 
 class UserRepo:
@@ -37,6 +36,8 @@ class UserRepo:
         """
         Busca un usuario por su ID en la base de datos.
         """
+        if not id:
+            raise RouteNotFoundError(detail=f"User Repo says: Invalid ID provided, find by id failed")
         return self.__db.query(self.__model).filter(self.__model.id == id).first()
     
     def find_all(self) -> List[UserResponseSchema]:
@@ -52,10 +53,12 @@ class UserRepo:
         return self.__db.query(self.__model).filter(self.__model.email == email).first() is not None
     
     #Update Method
-    def update(self, *, db_obj: User, obj_in: UserUpdateSchema) -> UserResponseSchema:
+    def update(self, id: UUID, db_obj: User, obj_in: UserUpdateSchema) -> UserResponseSchema:
         """
         Actualiza un usuario existente en la base de datos.
         """
+        if not id:
+            raise RouteNotFoundError(detail=f"User Repo says: Invalid ID provided, update failed")
         update_data = obj_in.model_dump(exclude_unset=True)
         for field, value in update_data.items():
             setattr(db_obj, field, value)
