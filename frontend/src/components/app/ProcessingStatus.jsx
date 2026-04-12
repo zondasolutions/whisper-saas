@@ -1,38 +1,16 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const PIPELINE_STEPS = [
-    {
-        id: 'upload',
-        icon: 'cloud_upload',
-        title: 'Encrypting & Uploading…',
-        subtitle: 'Zero-trust connection to secure storage',
-        color: 'primary',
-    },
-    {
-        id: 'cleaning',
-        icon: 'graphic_eq',
-        title: 'Cleaning Audio with DeepFilterNet3…',
-        subtitle: 'AI noise suppression · Removing background artifacts',
-        color: 'tertiary',
-    },
-    {
-        id: 'transcribing',
-        icon: 'psychology',
-        title: 'AI is Transcribing on GPU…',
-        subtitle: 'Whisper Large-v3 Model · Forced Alignment active',
-        color: 'secondary',
-    },
-    {
-        id: 'diarizing',
-        icon: 'group',
-        title: 'Identifying Speakers…',
-        subtitle: 'PyAnnote 3.1 · Speaker Diarization active',
-        color: 'primary',
-    },
+    { id: 'upload',      icon: 'cloud_upload', titleKey: 'processing.uploadTitle',      subtitleKey: 'processing.uploadSubtitle',      color: 'primary' },
+    { id: 'cleaning',    icon: 'graphic_eq',   titleKey: 'processing.cleaningTitle',    subtitleKey: 'processing.cleaningSubtitle',    color: 'tertiary' },
+    { id: 'transcribing',icon: 'psychology',   titleKey: 'processing.transcribingTitle',subtitleKey: 'processing.transcribingSubtitle',color: 'secondary' },
+    { id: 'diarizing',   icon: 'group',        titleKey: 'processing.diarizingTitle',   subtitleKey: 'processing.diarizingSubtitle',   color: 'primary' },
 ];
 
 export default function ProcessingStatus({ status }) {
     const [activeStep, setActiveStep] = useState(0);
+    const { t } = useTranslation();
 
     useEffect(() => {
         if (status === 'uploading') {
@@ -68,8 +46,8 @@ export default function ProcessingStatus({ status }) {
 
             {/* Title */}
             <div>
-                <h2 className="text-2xl font-bold text-white mb-2">{currentStep.title}</h2>
-                <p className="text-on-surface-variant">{currentStep.subtitle}</p>
+                <h2 className="text-2xl font-bold text-white mb-2">{t(currentStep.titleKey)}</h2>
+                <p className="text-on-surface-variant">{t(currentStep.subtitleKey)}</p>
             </div>
 
             {/* Pipeline Progress */}

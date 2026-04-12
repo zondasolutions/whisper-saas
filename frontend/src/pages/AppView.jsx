@@ -9,6 +9,7 @@ import TranscriptionResult from '../components/app/TranscriptionResult';
 import HistoryView from '../components/app/HistoryView';
 import SettingsView from '../components/app/SettingsView';
 import { useAuth } from '../context/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 export default function AppView() {
     const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -19,7 +20,8 @@ export default function AppView() {
     const [diarizationOptions, setDiarizationOptions] = useState({ numSpeakers: '', minSpeakers: '', maxSpeakers: '' });
     const [result, setResult] = useState(null);
     const { showToast } = useToast();
-    const { isLoggedIn, user, logout } = useAuth();
+    const { isLoggedIn, user } = useAuth();
+    const { t } = useTranslation();
 
     const handleTranscribe = async () => {
         if (!file) return;
@@ -49,7 +51,7 @@ export default function AppView() {
                         try {
                             const historyKey = `whisper_history_v1_${user.id}`;
                             const history = JSON.parse(localStorage.getItem(historyKey) || '[]');
-                            
+
                             let dur = "00:00";
                             if (statusRes.transcript?.segments?.length > 0) {
                                 const lastSeg = statusRes.transcript.segments[statusRes.transcript.segments.length - 1];
@@ -72,13 +74,13 @@ export default function AppView() {
                             console.error('Failed to save history', e);
                         }
                     } else {
-                        showToast('Tu transcripción no se ha guardado porque no has iniciado sesión.', 'info');
+                        showToast(t('appView.notSaved'), 'info');
                     }
 
-                    showToast('Transcription completed successfully!', 'success');
+                    showToast(t('appView.completed'), 'success');
                     return;
                 } else if (statusRes.status === 'failed') {
-                    throw new Error(statusRes.error || 'Transcription failed on GPU worker');
+                    throw new Error(statusRes.error || t('appView.error'));
                 } else if (statusRes.status === 'local_mode') {
                     // Dev mode: RunPod not configured, show placeholder result
                     setResult({
@@ -87,15 +89,15 @@ export default function AppView() {
                         ]
                     });
                     setStatus('done');
-                    showToast('Local mode: RunPod not configured.', 'success');
+                    showToast(t('appView.localMode'), 'success');
                     return;
                 }
                 // status === 'processing' → keep polling
             }
-            throw new Error('Transcription timed out after 5 minutes.');
+            throw new Error(t('appView.timeout'));
         } catch (error) {
             console.error(error);
-            showToast(error.message || 'An error occurred during transcription.', 'error');
+            showToast(error.message || t('appView.error'), 'error');
             setStatus('idle');
         }
     };
@@ -126,11 +128,11 @@ export default function AppView() {
                 {currentView === 'new' && (
                     <>
                         {status === 'idle' && (
-                            <UploadArea 
-                                file={file} 
-                                setFile={setFile} 
+                            <UploadArea
+                                file={file}
+                                setFile={setFile}
                                 setAudioDuration={setAudioDuration}
-                                onTranscribe={handleTranscribe} 
+                                onTranscribe={handleTranscribe}
                                 diarizationOptions={diarizationOptions}
                                 setDiarizationOptions={setDiarizationOptions}
                             />

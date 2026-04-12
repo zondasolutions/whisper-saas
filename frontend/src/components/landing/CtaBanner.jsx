@@ -1,8 +1,10 @@
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import Orb from '../common/Orb';
 
 export default function CtaBanner() {
     const navigate = useNavigate();
+    const { t } = useTranslation();
 
     return (
         <section className="py-24 px-8">
@@ -10,17 +12,17 @@ export default function CtaBanner() {
                 <Orb className="bg-primary w-64 h-64 -top-32 -left-32 opacity-10 absolute pointer-events-none" />
                 <div className="relative z-10">
                     <h2 className="text-4xl md:text-5xl font-bold font-headline text-white mb-8">
-                        Ready to transform your sound?
+                        {t('cta.title')}
                     </h2>
                     <p className="text-xl text-on-surface-variant mb-12 max-w-2xl mx-auto">
-                        Join 10,000+ creators and enterprises who trust Voxify for their critical transcription needs.
+                        {t('cta.subtitle')}
                     </p>
                     <div className="flex flex-col sm:flex-row justify-center gap-6">
                         <button onClick={() => navigate('/app')} className="bg-white text-background px-10 py-4 rounded-full font-bold text-lg hover:bg-opacity-90 transition-all">
-                            Get Started Free
+                            {t('cta.startFree')}
                         </button>
                         <button onClick={() => navigate('/contact')} className="bg-surface-container-high text-white px-10 py-4 rounded-full font-bold text-lg border border-white/10 hover:bg-surface-container-highest transition-all">
-                            Contact Sales
+                            {t('cta.contactSales')}
                         </button>
                     </div>
                 </div>

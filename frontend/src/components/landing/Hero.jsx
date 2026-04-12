@@ -1,9 +1,11 @@
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export default function Hero() {
     const navigate = useNavigate();
     const [isMuted, setIsMuted] = useState(true);
+    const { t } = useTranslation();
 
     return (
         <section className="pt-40 pb-24 px-8 overflow-hidden">
@@ -11,23 +13,23 @@ export default function Hero() {
                 <div className="space-y-8">
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface-container-high border border-outline-variant/20">
                         <span className="w-2 h-2 rounded-full bg-secondary" style={{ boxShadow: '0 0 8px #46eae5' }} />
-                        <span className="text-[10px] font-bold tracking-widest uppercase text-secondary">v3.0 Engine Live</span>
+                        <span className="text-[10px] font-bold tracking-widest uppercase text-secondary">{t('hero.badge')}</span>
                     </div>
                     <h1 className="text-6xl md:text-7xl font-extrabold font-headline leading-[1.1] tracking-tight text-white">
-                        Transcribe Audio at the{' '}
+                        {t('hero.title1')}{' '}
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">
-                            Speed of Thought
+                            {t('hero.title2')}
                         </span>
                     </h1>
                     <p className="text-xl text-on-surface-variant max-w-xl leading-relaxed">
-                        Enterprise-grade AI transcription with speaker diarization. 100% ephemeral. Impossibly fast.
+                        {t('hero.subtitle')}
                     </p>
                     <div className="flex flex-wrap gap-4 pt-4">
                         <button onClick={() => navigate('/app')} className="btn-primary">
-                            Start Transcribing
+                            {t('hero.ctaStart')}
                             <span className="material-symbols-outlined text-xl">arrow_forward</span>
                         </button>
-                        <button className="btn-ghost">Watch Demo</button>
+                        <button className="btn-ghost">{t('hero.ctaDemo')}</button>
                     </div>
                 </div>
 
@@ -44,8 +46,8 @@ export default function Hero() {
                         <button
                             onClick={() => setIsMuted(!isMuted)}
                             className="absolute top-8 right-8 bg-black/40 hover:bg-black/80 backdrop-blur-md border border-white/10 p-2.5 rounded-full text-white transition-all z-20 hover:scale-110 flex items-center justify-center shadow-lg"
-                            aria-label={isMuted ? "Unmute" : "Mute"}
-                            title={isMuted ? "Unmute" : "Mute"}
+                            aria-label={isMuted ? t('hero.unmute') : t('hero.mute')}
+                            title={isMuted ? t('hero.unmute') : t('hero.mute')}
                         >
                             <span className="material-symbols-outlined text-xl">
                                 {isMuted ? 'volume_off' : 'volume_up'}
@@ -62,8 +64,8 @@ export default function Hero() {
                                         <div className="h-full w-2/3 bg-secondary rounded-full" />
                                     </div>
                                     <div className="flex justify-between mt-2">
-                                        <span className="text-[10px] text-gray-400 font-mono">PROCESSING WAVEFORM...</span>
-                                        <span className="text-[10px] text-secondary font-mono">98% ACCURACY</span>
+                                        <span className="text-[10px] text-gray-400 font-mono">{t('hero.waveform')}</span>
+                                        <span className="text-[10px] text-secondary font-mono">{t('hero.accuracy')}</span>
                                     </div>
                                 </div>
                             </div>

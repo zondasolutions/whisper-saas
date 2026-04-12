@@ -1,26 +1,34 @@
 import { useRef, useState } from 'react';
 import { useToast } from '../common/Toast';
 import { useAuth } from '../../context/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 export default function UploadArea({ file, setFile, setAudioDuration, onTranscribe, diarizationOptions, setDiarizationOptions }) {
     const [isDragging, setIsDragging] = useState(false);
     const fileInputRef = useRef(null);
     const { showToast } = useToast();
     const { isLoggedIn } = useAuth();
+    const { t } = useTranslation();
 
     const validateAndSetFile = (f) => {
         if (!f) return;
 
         const audio = new Audio();
         const objectUrl = URL.createObjectURL(f);
-        
+
         audio.onloadedmetadata = () => {
             URL.revokeObjectURL(objectUrl);
             const duration = audio.duration;
             const limitSeconds = 3 * 60;
-            
+
             if (!isLoggedIn && duration > limitSeconds) {
-                showToast(`Para cuentas gratuitas el límite es de 3 minutos. Su archivo dura ${Math.floor(duration / 60)}m ${Math.floor(duration%60)}s. Registrate o acorta el audio.`, 'error');
+                showToast(
+                    t('upload.freeToastError', {
+                        minutes: Math.floor(duration / 60),
+                        seconds: Math.floor(duration % 60),
+                    }),
+                    'error'
+                );
                 return;
             }
             if (setAudioDuration) setAudioDuration(duration);
@@ -49,8 +57,8 @@ export default function UploadArea({ file, setFile, setAudioDuration, onTranscri
 
     return (
         <div className="max-w-2xl mx-auto pt-8">
-            <h1 className="text-3xl font-bold font-headline text-white mb-2">New Transcription</h1>
-            <p className="text-on-surface-variant mb-10">Upload an audio file to get started.</p>
+            <h1 className="text-3xl font-bold font-headline text-white mb-2">{t('upload.title')}</h1>
+            <p className="text-on-surface-variant mb-10">{t('upload.subtitle')}</p>
 
             {/* Big upload button */}
             <button
@@ -58,7 +66,7 @@ export default function UploadArea({ file, setFile, setAudioDuration, onTranscri
                 className="w-full btn-primary justify-center mb-6 text-xl py-5"
             >
                 <span className="material-symbols-outlined text-2xl">upload_file</span>
-                Upload Audio
+                {t('upload.uploadBtn')}
             </button>
 
             {/* Drag & drop area */}
@@ -84,8 +92,8 @@ export default function UploadArea({ file, setFile, setAudioDuration, onTranscri
                     </div>
                 ) : (
                     <>
-                        <p className="text-on-surface font-semibold text-lg mb-1">or drag & drop your file here</p>
-                        <p className="text-on-surface-variant text-sm">MP3, WAV, M4A, OGG up to 500MB</p>
+                        <p className="text-on-surface font-semibold text-lg mb-1">{t('upload.dragDrop')}</p>
+                        <p className="text-on-surface-variant text-sm">{t('upload.formatHint')}</p>
                     </>
                 )}
                 <div className="flex justify-center gap-2 mt-4">
@@ -102,17 +110,17 @@ export default function UploadArea({ file, setFile, setAudioDuration, onTranscri
             {file && (
                 <div className="mt-8 p-6 bg-surface border border-outline-variant/30 rounded-2xl flex flex-col gap-4 text-left">
                     <div>
-                        <h3 className="text-lg font-semibold text-on-surface">Speaker Diarization Options</h3>
-                        <p className="text-sm text-on-surface-variant">Help the AI identify speakers more accurately by providing hints.</p>
+                        <h3 className="text-lg font-semibold text-on-surface">{t('upload.diarizationTitle')}</h3>
+                        <p className="text-sm text-on-surface-variant">{t('upload.diarizationHint')}</p>
                     </div>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
                         <div>
-                            <label className="block text-sm font-medium text-on-surface mb-1">Exact Number of Speakers</label>
-                            <input 
-                                type="number" 
-                                min="1" 
-                                className="w-full bg-surface-container text-on-surface px-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50" 
+                            <label className="block text-sm font-medium text-on-surface mb-1">{t('upload.exactSpeakers')}</label>
+                            <input
+                                type="number"
+                                min="1"
+                                className="w-full bg-surface-container text-on-surface px-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50"
                                 placeholder="Auto"
                                 value={diarizationOptions?.numSpeakers || ''}
                                 onChange={(e) => setDiarizationOptions(prev => ({ ...prev, numSpeakers: e.target.value, minSpeakers: '', maxSpeakers: '' }))}
@@ -120,11 +128,11 @@ export default function UploadArea({ file, setFile, setAudioDuration, onTranscri
                         </div>
                         <div className="grid grid-cols-2 gap-2">
                             <div>
-                                <label className="block text-sm font-medium text-on-surface mb-1">Min Speakers</label>
-                                <input 
-                                    type="number" 
-                                    min="1" 
-                                    className="w-full bg-surface-container text-on-surface px-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50" 
+                                <label className="block text-sm font-medium text-on-surface mb-1">{t('upload.minSpeakers')}</label>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    className="w-full bg-surface-container text-on-surface px-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
                                     placeholder="Auto"
                                     disabled={!!diarizationOptions?.numSpeakers}
                                     value={diarizationOptions?.numSpeakers ? '' : (diarizationOptions?.minSpeakers || '')}
@@ -132,11 +140,11 @@ export default function UploadArea({ file, setFile, setAudioDuration, onTranscri
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-on-surface mb-1">Max Speakers</label>
-                                <input 
-                                    type="number" 
-                                    min="1" 
-                                    className="w-full bg-surface-container text-on-surface px-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50" 
+                                <label className="block text-sm font-medium text-on-surface mb-1">{t('upload.maxSpeakers')}</label>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    className="w-full bg-surface-container text-on-surface px-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
                                     placeholder="Auto"
                                     disabled={!!diarizationOptions?.numSpeakers}
                                     value={diarizationOptions?.numSpeakers ? '' : (diarizationOptions?.maxSpeakers || '')}
@@ -158,9 +166,9 @@ export default function UploadArea({ file, setFile, setAudioDuration, onTranscri
                         }`}
                     style={file ? { boxShadow: '0 0 20px rgba(108,92,231,0.3)' } : {}}
                 >
-                    Transcribe Now
+                    {t('upload.transcribeBtn')}
                 </button>
-                <p className="text-xs text-on-surface-variant mt-3">Transripciones sin registro: máx 3 minutos.</p>
+                <p className="text-xs text-on-surface-variant mt-3">{t('upload.freeLimit')}</p>
             </div>
         </div>
     );

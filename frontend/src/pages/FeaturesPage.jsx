@@ -3,8 +3,11 @@ import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 import Orb from '../components/common/Orb';
 import Features from '../components/landing/Features';
+import { useTranslation } from 'react-i18next';
 
 export default function FeaturesPage() {
+    const { t } = useTranslation();
+
     return (
         <motion.div
             initial={{ opacity: 0 }}
@@ -22,14 +25,13 @@ export default function FeaturesPage() {
             <main className="relative z-10 flex-1 pt-24 pb-12">
                 <div className="max-w-7xl mx-auto text-center px-8 mb-[-3rem]">
                     <h1 className="text-5xl md:text-6xl font-extrabold font-headline leading-tight text-white mt-12 mb-6">
-                        Explore <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">Capabilities</span>
+                        {t('featuresPage.title')} <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">{t('featuresPage.titleHighlight')}</span>
                     </h1>
                     <p className="text-xl text-on-surface-variant max-w-2xl mx-auto">
-                        Dive deep into the technology powering the world's fastest speech-to-text service.
+                        {t('featuresPage.subtitle')}
                     </p>
                 </div>
 
-                {/* We reuse the Features component from the landing page. We wrap it in a div to preserve its internal padding/margins effectively */}
                 <div className="mt-8">
                     <Features />
                 </div>

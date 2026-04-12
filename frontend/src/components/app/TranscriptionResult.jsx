@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useToast } from '../common/Toast';
+import { useTranslation } from 'react-i18next';
 
 export default function TranscriptionResult({ result, file, onReset }) {
     const [activeSegment, setActiveSegment] = useState(null);
@@ -8,6 +9,7 @@ export default function TranscriptionResult({ result, file, onReset }) {
     const [duration, setDuration] = useState(0);
     const audioRef = useRef(null);
     const { showToast } = useToast();
+    const { t } = useTranslation();
 
     const segments = result?.segments || [];
 
@@ -25,7 +27,7 @@ export default function TranscriptionResult({ result, file, onReset }) {
     // Track active segment based on audio time
     useEffect(() => {
         if (!segments || segments.length === 0) return;
-        
+
         let found = false;
         for (let i = 0; i < segments.length; i++) {
             const seg = segments[i];
@@ -92,12 +94,12 @@ export default function TranscriptionResult({ result, file, onReset }) {
     // Exports
     const generatePlainText = () => {
         if (!segments.length && result?.text) return result.text;
-        return segments.map((s, i) => `[${s.speaker || `Speaker ${i % 2 === 0 ? 1 : 2}`}] ${formatTime(s.start)}: ${s.text}`).join('\n\n');
+        return segments.map((s, i) => `[${s.speaker || `${t('result.speaker')} ${i % 2 === 0 ? 1 : 2}`}] ${formatTime(s.start)}: ${s.text}`).join('\n\n');
     };
 
     const handleCopy = () => {
         navigator.clipboard.writeText(generatePlainText());
-        showToast('Text copied to clipboard!', 'success');
+        showToast(t('result.copiedToast'), 'success');
     };
 
     const downloadFile = (content, filename, type) => {
@@ -112,12 +114,12 @@ export default function TranscriptionResult({ result, file, onReset }) {
 
     const handleDownloadTXT = () => {
         downloadFile(generatePlainText(), `${file?.name || 'transcription'}.txt`, 'text/plain');
-        showToast('TXT file downloaded', 'success');
+        showToast(t('result.txtDownload'), 'success');
     };
 
     const handleDownloadSRT = () => {
         if (!segments || segments.length === 0) {
-            showToast('No segments available for SRT', 'error');
+            showToast(t('result.noSrtSegments'), 'error');
             return;
         }
 
@@ -135,37 +137,37 @@ export default function TranscriptionResult({ result, file, onReset }) {
         }).join('\n');
 
         downloadFile(srtContent, `${file?.name || 'transcription'}.srt`, 'text/plain');
-        showToast('SRT file downloaded', 'success');
+        showToast(t('result.srtDownload'), 'success');
     };
 
     return (
         <div className="max-w-5xl mx-auto pt-4">
-            <audio 
-                ref={audioRef} 
-                onTimeUpdate={handleTimeUpdate} 
+            <audio
+                ref={audioRef}
+                onTimeUpdate={handleTimeUpdate}
                 onLoadedMetadata={handleLoadedMetadata}
                 onEnded={() => setIsPlaying(false)}
-                className="hidden" 
+                className="hidden"
             />
 
             <div className="flex items-center justify-between mb-8">
                 <div>
-                    <h1 className="text-2xl font-bold font-headline text-white">Transcription Ready</h1>
+                    <h1 className="text-2xl font-bold font-headline text-white">{t('result.title')}</h1>
                     <p className="text-xs text-secondary mt-1 flex items-center gap-1">
                         <span className="material-symbols-outlined text-sm">verified_user</span>
-                        Ephemeral data purged from servers
+                        {t('result.purged')}
                     </p>
                 </div>
                 <button onClick={onReset} className="flex items-center gap-2 text-sm text-on-surface-variant hover:text-on-surface transition-colors border border-outline-variant/30 px-4 py-2 rounded-full">
                     <span className="material-symbols-outlined text-lg">add</span>
-                    New Transcription
+                    {t('result.newTranscription')}
                 </button>
             </div>
 
             <div className="grid lg:grid-cols-5 gap-6">
                 {/* Player */}
                 <div className="lg:col-span-2 glass-card rounded-2xl p-6 border border-white/5 h-fit">
-                    <h3 className="text-sm font-semibold text-on-surface-variant uppercase tracking-widest mb-4">Audio Player</h3>
+                    <h3 className="text-sm font-semibold text-on-surface-variant uppercase tracking-widest mb-4">{t('result.audioPlayer')}</h3>
                     <div className="flex items-center gap-3 mb-6">
                         <div className="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center">
                             <span className="material-symbols-outlined text-white text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>audio_file</span>
@@ -191,8 +193,8 @@ export default function TranscriptionResult({ result, file, onReset }) {
 
                     {/* Scrubber */}
                     <div className="h-2 bg-surface-container-high rounded-full mb-1 overflow-hidden cursor-pointer" onClick={handleScrubberClick}>
-                        <div 
-                            className="h-full bg-gradient-to-r from-primary-container to-secondary rounded-full transition-all" 
+                        <div
+                            className="h-full bg-gradient-to-r from-primary-container to-secondary rounded-full transition-all"
                             style={{ width: `${duration ? (currentTime / duration) * 100 : 0}%` }}
                         />
                     </div>
@@ -215,27 +217,26 @@ export default function TranscriptionResult({ result, file, onReset }) {
 
                     {/* Export */}
                     <div className="space-y-2">
-                        <p className="text-xs text-on-surface-variant uppercase tracking-widest mb-3">Export</p>
-                        
+                        <p className="text-xs text-on-surface-variant uppercase tracking-widest mb-3">{t('result.export')}</p>
+
                         <button onClick={handleCopy} className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl bg-surface-container hover:bg-surface-container-high transition-all text-sm text-on-surface">
                             <span className="material-symbols-outlined text-lg text-on-surface-variant">content_copy</span>
-                            Copy Text
+                            {t('result.copyText')}
                         </button>
                         <button onClick={handleDownloadTXT} className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl bg-surface-container hover:bg-surface-container-high transition-all text-sm text-on-surface">
                             <span className="material-symbols-outlined text-lg text-on-surface-variant">download</span>
-                            Download .TXT
+                            {t('result.downloadTxt')}
                         </button>
                         <button onClick={handleDownloadSRT} className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl bg-surface-container hover:bg-surface-container-high transition-all text-sm text-on-surface">
                             <span className="material-symbols-outlined text-lg text-on-surface-variant">subtitles</span>
-                            Download .SRT
+                            {t('result.downloadSrt')}
                         </button>
-
                     </div>
                 </div>
 
                 {/* Transcript */}
                 <div className="lg:col-span-3 glass-card rounded-2xl p-6 border border-white/5">
-                    <h3 className="text-sm font-semibold text-on-surface-variant uppercase tracking-widest mb-4">Transcript</h3>
+                    <h3 className="text-sm font-semibold text-on-surface-variant uppercase tracking-widest mb-4">{t('result.transcript')}</h3>
                     <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2 relative" id="transcript-container">
                         {segments.length > 0 ? (
                             segments.map((seg, i) => (
@@ -254,7 +255,7 @@ export default function TranscriptionResult({ result, file, onReset }) {
                                                     : 'bg-secondary-container/20 text-secondary'
                                                 }`}
                                         >
-                                            {seg.speaker || `Speaker ${i % 2 === 0 ? 1 : 2}`}
+                                            {seg.speaker || `${t('result.speaker')} ${i % 2 === 0 ? 1 : 2}`}
                                         </span>
                                         <span className="text-xs text-on-surface-variant font-mono">{formatTime(seg.start)}</span>
                                     </div>
@@ -265,7 +266,7 @@ export default function TranscriptionResult({ result, file, onReset }) {
                             ))
                         ) : (
                             <p className="text-on-surface-variant text-sm italic py-4">
-                                No transcription segments available. The full text might be available instead.
+                                {t('result.noSegments')}
                             </p>
                         )}
                         {/* Fallback to full text if no segments */}
