@@ -48,10 +48,10 @@ def transcribe_audio(
             has_active_sub = any(sub.status == "active" for sub in getattr(user, "subscriptions", []))
             
             if has_active_sub:
-                if duration > 7200:
-                    raise HTTPException(status_code=403, detail="Premium limit: 120 minutes per audio.")
-                if usage_total + duration > 72000:
-                    raise HTTPException(status_code=403, detail="Premium limit: 1200 minutes total per month exceeded.")
+                if duration > 10800:
+                    raise HTTPException(status_code=403, detail="Pro limit: 180 minutes per audio.")
+                if usage_total + duration > 180000:
+                    raise HTTPException(status_code=403, detail="Pro limit: 3000 minutes total per month exceeded.")
             else:
                 if duration > 180:
                     raise HTTPException(status_code=403, detail="Free limit: 3 minutes per audio.")
