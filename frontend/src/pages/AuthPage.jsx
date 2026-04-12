@@ -26,6 +26,11 @@ export default function AuthPage() {
             showToast('Please fill in all required fields.', 'error');
             return;
         }
+        
+        if (password.length < 8) {
+            showToast('Password must be at least 8 characters long.', 'error');
+            return;
+        }
 
         setIsLoading(true);
         try {
