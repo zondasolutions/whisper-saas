@@ -66,7 +66,6 @@ export default function AppView() {
                                 status: 'Completed',
                                 result: statusRes.transcript
                             });
-                            const historyKey = `whisper_history_v1_${user.id}`;
                             localStorage.setItem(historyKey, JSON.stringify(history));
                         } catch (e) {
                             console.error('Failed to save history', e);
