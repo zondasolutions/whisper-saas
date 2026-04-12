@@ -8,16 +8,24 @@ export const AuthProvider = ({ children }) => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
 
+    const decodeJwt = (token) => {
+        try {
+            return JSON.parse(atob(token.split('.')[1]));
+        } catch (e) {
+            return null;
+        }
+    };
+
     useEffect(() => {
         const checkAuthStatus = async () => {
             const token = localStorage.getItem('access_token');
             if (token) {
                 try {
                     // Try to fetch current user profile using generic request if implemented
-                    // Otherwise we just assume active and set token directly in apiClient
                     apiClient.setToken(token);
                     setIsLoggedIn(true);
-                    setUser({ token }); // Real app: fetch user details
+                    const decoded = decodeJwt(token);
+                    setUser({ token, id: decoded?.sub }); // Store the subject (id) 
                 } catch (error) {
                     logout();
                 }
@@ -33,7 +41,8 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('access_token', access_token);
         apiClient.setToken(access_token);
         setIsLoggedIn(true);
-        setUser({ token: access_token });
+        const decoded = decodeJwt(access_token);
+        setUser({ token: access_token, id: decoded?.sub });
     };
 
     const register = async (name, email, password) => {

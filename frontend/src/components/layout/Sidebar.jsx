@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 const NAV_ITEMS = [
     { icon: 'add_circle', label: 'New Transcription', id: 'new' },
@@ -8,6 +9,8 @@ const NAV_ITEMS = [
 
 export default function Sidebar({ sidebarOpen, setSidebarOpen, currentView, setCurrentView }) {
     const navigate = useNavigate();
+    const { isLoggedIn, logout } = useAuth();
+
 
     return (
         <aside
@@ -52,6 +55,17 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, currentView, setC
                         <span>Home</span>
                     </button>
                 )}
+                
+                {isLoggedIn && (
+                    <button
+                        onClick={() => { logout(); navigate('/') }}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-error hover:bg-error/10 transition-all text-sm font-medium"
+                    >
+                        <span className="material-symbols-outlined text-xl flex-shrink-0">logout</span>
+                        {sidebarOpen && <span>Sign Out</span>}
+                    </button>
+                )}
+
                 <button
                     onClick={() => setSidebarOpen(!sidebarOpen)}
                     className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all"

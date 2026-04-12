@@ -1,23 +1,31 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useAuth } from '../../context/AuthContext';
 
 export default function HistoryView({ onViewResult }) {
     const [history, setHistory] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
+    const { user } = useAuth();
 
     useEffect(() => {
         try {
-            const data = JSON.parse(localStorage.getItem('whisper_history_v1') || '[]');
-            setHistory(data);
+            if (user?.id) {
+                const historyKey = `whisper_history_v1_${user.id}`;
+                const data = JSON.parse(localStorage.getItem(historyKey) || '[]');
+                setHistory(data);
+            }
         } catch (e) {
             console.error('Failed to load history', e);
         }
-    }, []);
+    }, [user?.id]);
 
     const handleDelete = (id) => {
         const updated = history.filter(item => item.id !== id);
         setHistory(updated);
-        localStorage.setItem('whisper_history_v1', JSON.stringify(updated));
+        if (user?.id) {
+            const historyKey = `whisper_history_v1_${user.id}`;
+            localStorage.setItem(historyKey, JSON.stringify(updated));
+        }
     };
 
     const containerVariants = {

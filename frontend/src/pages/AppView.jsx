@@ -44,9 +44,10 @@ export default function AppView() {
                     setResult(statusRes.transcript);
                     setStatus('done');
 
-                    if (isLoggedIn) {
+                    if (isLoggedIn && user?.id) {
                         try {
-                            const history = JSON.parse(localStorage.getItem('whisper_history_v1') || '[]');
+                            const historyKey = `whisper_history_v1_${user.id}`;
+                            const history = JSON.parse(localStorage.getItem(historyKey) || '[]');
                             
                             let dur = "00:00";
                             if (statusRes.transcript?.segments?.length > 0) {
@@ -65,7 +66,8 @@ export default function AppView() {
                                 status: 'Completed',
                                 result: statusRes.transcript
                             });
-                            localStorage.setItem('whisper_history_v1', JSON.stringify(history));
+                            const historyKey = `whisper_history_v1_${user.id}`;
+                            localStorage.setItem(historyKey, JSON.stringify(history));
                         } catch (e) {
                             console.error('Failed to save history', e);
                         }
