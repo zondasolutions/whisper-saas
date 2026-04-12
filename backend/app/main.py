@@ -2,6 +2,7 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .api.endpoints import upload, transcribe, status
+from .api.endpoints.v1.users import user_router
 from .api.endpoints.v1.auth import auth_router
 from .api.endpoints.v1.webhooks import webhook_router
 from .api.endpoints.v1.plans import plan_router
