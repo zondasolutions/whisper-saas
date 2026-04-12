@@ -1,6 +1,20 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 
+let authToken = null;
+
 export const apiClient = {
+  setToken(token) {
+    authToken = token;
+  },
+
+  getHeaders(customHeaders = {}) {
+    const headers = { ...customHeaders };
+    if (authToken) {
+      headers['Authorization'] = `Bearer ${authToken}`;
+    }
+    return headers;
+  },
+
   /**
    * 3-step secure upload:
    * 1. Get a presigned PUT URL from the backend
@@ -11,7 +25,7 @@ export const apiClient = {
     // Step 1: Request presigned URL
     const urlRes = await fetch(`${API_BASE_URL}/upload-url`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: this.getHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({
         filename: file.name,
         content_type: file.type || 'audio/mpeg',
@@ -43,11 +57,11 @@ export const apiClient = {
    * Submits a transcription job to the backend, which dispatches it to RunPod.
    * Returns { job_id } for polling.
    */
-  async transcribe(fileKey) {
+  async transcribe(fileKey, durationSeconds = 0) {
     const response = await fetch(`${API_BASE_URL}/transcribe`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ file_key: fileKey }),
+      headers: this.getHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ file_key: fileKey, duration_seconds: Math.ceil(durationSeconds) }),
     });
 
     if (!response.ok) {
@@ -63,10 +77,43 @@ export const apiClient = {
    * Returns { status: 'processing' | 'completed' | 'failed' | 'local_mode', transcript? }
    */
   async getStatus(jobId) {
-    const response = await fetch(`${API_BASE_URL}/status/${jobId}`);
+    const response = await fetch(`${API_BASE_URL}/status/${jobId}`, {
+        headers: this.getHeaders()
+    });
     if (!response.ok) {
       throw new Error(`Status check failed (HTTP ${response.status})`);
     }
     return response.json();
+    return response.json();
   },
+
+  async login(email, password) {
+    const formData = new URLSearchParams();
+    formData.append('username', email);
+    formData.append('password', password);
+
+    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: formData,
+    });
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.detail || 'Login failed');
+    }
+    return response.json();
+  },
+
+  async register(name, email, password) {
+    const response = await fetch(`${API_BASE_URL}/users/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password, is_admin: false }),
+    });
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.detail || 'Registration failed');
+    }
+    return response.json();
+  }
 };
