@@ -1,5 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { apiClient } from '../../api/client';
+import { useState, useEffect } from 'react';
 
 const NAV_ITEMS = [
     { icon: 'add_circle', label: 'New Transcription', id: 'new' },
@@ -10,6 +12,17 @@ const NAV_ITEMS = [
 export default function Sidebar({ sidebarOpen, setSidebarOpen, currentView, setCurrentView }) {
     const navigate = useNavigate();
     const { isLoggedIn, logout } = useAuth();
+    const [usage, setUsage] = useState(null);
+
+    useEffect(() => {
+        if (isLoggedIn) {
+            apiClient.getUsage()
+                .then(data => setUsage(data))
+                .catch(err => console.error("Could not fetch usage details", err));
+        } else {
+            setUsage(null);
+        }
+    }, [isLoggedIn, currentView]); // Refresh when navigating
 
 
     return (
@@ -44,9 +57,37 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, currentView, setC
                 ))}
             </nav>
 
+            {/* Usage Widget */}
+            {sidebarOpen && usage && (
+                <div className="px-4 py-4 border-t border-white/5">
+                    <div className="bg-surface-container/50 rounded-xl p-3 border border-white/5">
+                        <div className="flex justify-between items-center mb-2">
+                            <span className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">{usage.tier} Plan</span>
+                            <span className="text-[10px] bg-primary-container text-primary px-1.5 py-0.5 rounded font-mono">
+                                {usage.limit_seconds === -1 ? '∞' : Math.floor(usage.used_seconds / 60) + ' / ' + Math.floor(usage.limit_seconds / 60) + 'm'}
+                            </span>
+                        </div>
+                        
+                        {usage.limit_seconds !== -1 && (
+                            <div className="w-full bg-surface-container-high rounded-full h-1.5 mb-2 overflow-hidden">
+                                <div 
+                                    className="bg-primary h-1.5 rounded-full transition-all duration-500 ease-out" 
+                                    style={{ width: `${Math.min(100, (usage.used_seconds / usage.limit_seconds) * 100)}%` }}
+                                ></div>
+                            </div>
+                        )}
+                        
+                        <p className="text-[10px] text-on-surface-variant/70 text-center">
+                            Resets {new Date(usage.reset_date).toLocaleDateString()}
+                        </p>
+                    </div>
+                </div>
+            )}
+
             {/* Back to landing + collapse toggle */}
             <div className="px-2 pb-4 space-y-1 border-t border-white/5 pt-4">
                 {sidebarOpen && (
+
                     <button
                         onClick={() => navigate('/')}
                         className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all text-sm font-medium"

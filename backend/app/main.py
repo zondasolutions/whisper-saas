@@ -2,10 +2,10 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .api.endpoints import upload, transcribe, status
-from .api.endpoints.v1.users import user_router
 from .api.endpoints.v1.auth import auth_router
 from .api.endpoints.v1.webhooks import webhook_router
 from .api.endpoints.v1.plans import plan_router
+from .api.endpoints.v1.usage import usage_router
 from .core.db import create_tables
 from . import models
 app = FastAPI(title="Whisper SaaS Config - MVP Backend", version="1.0.0")
@@ -33,6 +33,7 @@ app.include_router(user_router, prefix="/api/v1", tags=["Users"])
 app.include_router(auth_router, prefix="/api/v1", tags=["Auth"])
 app.include_router(webhook_router, prefix="/api/v1", tags=["Webhooks"])
 app.include_router(plan_router, prefix="/api/v1", tags=["Plans"])
+app.include_router(usage_router, prefix="/api/v1", tags=["Usage"])
 @app.get("/health")
 def health_check():
     return {"status": "ok"}

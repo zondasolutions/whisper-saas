@@ -84,6 +84,15 @@ export const apiClient = {
       throw new Error(`Status check failed (HTTP ${response.status})`);
     }
     return response.json();
+  },
+
+  async getUsage() {
+    const response = await fetch(`${API_BASE_URL}/usage/me`, {
+        headers: this.getHeaders()
+    });
+    if (!response.ok) {
+      throw new Error('Failed to fetch usage');
+    }
     return response.json();
   },
 
