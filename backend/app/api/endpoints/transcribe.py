@@ -15,6 +15,9 @@ router = APIRouter()
 class TranscribeRequest(BaseModel):
     file_key: str
     duration_seconds: int = 0
+    num_speakers: int | None = None
+    min_speakers: int | None = None
+    max_speakers: int | None = None
 
 @router.post("/transcribe")
 def transcribe_audio(
@@ -76,7 +79,12 @@ def transcribe_audio(
         raise HTTPException(status_code=500, detail=f"Failed to generate read URL: {str(e)}")
 
     try:
-        job_id = submit_transcription_job(audio_url=read_url)
+        job_id = submit_transcription_job(
+            audio_url=read_url,
+            num_speakers=req.num_speakers,
+            min_speakers=req.min_speakers,
+            max_speakers=req.max_speakers
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

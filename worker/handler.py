@@ -3,85 +3,126 @@ import os
 import uuid
 import requests
 import json
-import subprocess
+import torch
+import gc
+import whisperx
+from df.enhance import enhance, init_df, load_audio, save_audio
 
 # CRITICAL: Point HuggingFace to the Network Volume cache BEFORE any model imports.
-# This ensures insanely-fast-whisper and pyannote use pre-downloaded weights
-# instead of downloading them fresh on every cold start.
 os.environ["HF_HOME"] = "/runpod-volume/hf_cache"
 os.environ["TRANSFORMERS_CACHE"] = "/runpod-volume/hf_cache"
 
+# Global Model Caches for zero-latency warm starts
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+COMPUTE_TYPE = "float16" if torch.cuda.is_available() else "int8"
+BATCH_SIZE = 16
+
+WHISPER_MODEL = None
+DIARIZE_MODEL = None
+DF_MODEL = None
+DF_STATE = None
+ALIGN_MODELS = {}
+
+def get_df_model():
+    global DF_MODEL, DF_STATE
+    if DF_MODEL is None:
+        DF_MODEL, DF_STATE, _ = init_df()
+    return DF_MODEL, DF_STATE
+
+def get_whisper_model():
+    global WHISPER_MODEL
+    if WHISPER_MODEL is None:
+        WHISPER_MODEL = whisperx.load_model("large-v3", DEVICE, compute_type=COMPUTE_TYPE)
+    return WHISPER_MODEL
+
+def get_diarize_model(hf_token):
+    global DIARIZE_MODEL
+    if DIARIZE_MODEL is None and hf_token:
+        DIARIZE_MODEL = whisperx.DiarizationPipeline(use_auth_token=hf_token, device=DEVICE)
+    return DIARIZE_MODEL
+
+def get_align_model(language_code):
+    global ALIGN_MODELS
+    if language_code not in ALIGN_MODELS:
+        model_a, metadata = whisperx.load_align_model(language_code=language_code, device=DEVICE)
+        ALIGN_MODELS[language_code] = (model_a, metadata)
+    return ALIGN_MODELS[language_code]
+
+def purge_resources():
+    gc.collect()
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
 
 def download_file(url: str, local_path: str):
-    """Download a file from a presigned URL to a local path."""
     response = requests.get(url, stream=True, timeout=300)
     response.raise_for_status()
     with open(local_path, 'wb') as f:
         for chunk in response.iter_content(chunk_size=65536):
             f.write(chunk)
 
-
 def handler(job):
-    """RunPod Serverless handler for audio transcription with speaker diarization."""
     job_input = job['input']
     audio_url = job_input.get('audio_url')
 
     if not audio_url:
         return {"error": "audio_url is required in job input"}
 
-    # Ephemeral secure processing — unique temp paths per job
     temp_id = str(uuid.uuid4())
-    # Extract real file extension from the URL path (before query params)
-    # e.g. ".mp3", ".m4a", ".wav" — Whisper/ffmpeg needs this to detect the codec
     from urllib.parse import urlparse
     url_path = urlparse(audio_url).path
     file_ext = os.path.splitext(url_path)[1] or ".mp3"
+    
     local_audio_path = f"/tmp/{temp_id}_audio{file_ext}"
-    output_json_path = f"/tmp/{temp_id}_transcript.json"
-
+    clean_audio_path = f"/tmp/{temp_id}_clean.wav"
     hf_token = os.environ.get("HF_TOKEN")
 
     try:
-        # Step 1: Download audio from R2 presigned URL
+        # Step 1: Download audio
         download_file(audio_url, local_audio_path)
 
-        # Step 2: Run insanely-fast-whisper with speaker diarization
-        command = [
-            "insanely-fast-whisper",
-            "--file-name", local_audio_path,
-            "--model-name", "openai/whisper-large-v3",
-            "--device-id", "0",
-            "--batch-size", "24",
-            "--transcript-path", output_json_path,
-        ]
+        # Step 2: DeepFilterNet Enhancement (in RAM -> Temp WAV)
+        df_model, df_state = get_df_model()
+        df_audio, _ = load_audio(local_audio_path, sr=df_state.sr())
+        
+        # Audio must ideally be short chunks or at least enhanced properly
+        # enhance supports full tensors, let it process the whole thing.
+        enhanced = enhance(df_model, df_state, df_audio)
+        save_audio(clean_audio_path, enhanced, df_state.sr())
+        del df_audio, enhanced
+        purge_resources()
 
-        # Diarization requires HF token + pyannote license accepted
+        # Step 3: Transcribe with WhisperX
+        whisper_model = get_whisper_model()
+        audio = whisperx.load_audio(clean_audio_path)
+        result = whisper_model.transcribe(audio, batch_size=BATCH_SIZE)
+        
+        # Step 4: Align
+        language = result.get("language", "en")
+        model_a, metadata = get_align_model(language)
+        result = whisperx.align(result["segments"], model_a, metadata, audio, DEVICE, return_char_alignments=False)
+        
+        # Step 5: Diarization based on Optional Arguments
         if hf_token:
-            command.extend([
-                "--hf-token", hf_token,
-                "--diarization_model", "pyannote/speaker-diarization-3.1",
-            ])
-
-        result = subprocess.run(
-            command,
-            check=True,
-            capture_output=True,
-            text=True,
-            timeout=600  # 10 min max per job
-        )
-
-        # Step 3: Read and return transcript
-        with open(output_json_path, 'r', encoding='utf-8') as f:
-            transcript_data = json.load(f)
-
-        # Normalize output to match frontend expectations:
-        # { segments: [{speaker, start, text}] }
+            diarize_model = get_diarize_model(hf_token)
+            
+            diarize_kwargs = {}
+            if job_input.get('num_speakers'):
+                diarize_kwargs['num_speakers'] = int(job_input['num_speakers'])
+            elif job_input.get('min_speakers'):
+                diarize_kwargs['min_speakers'] = int(job_input['min_speakers'])
+                if job_input.get('max_speakers'):
+                    diarize_kwargs['max_speakers'] = int(job_input['max_speakers'])
+            
+            diarize_segments = diarize_model(audio, **diarize_kwargs)
+            result = whisperx.assign_word_speakers(diarize_segments, result)
+        
+        # Final Format Cleanup
         segments = []
-        for chunk in transcript_data.get("speakers", transcript_data.get("chunks", [])):
+        for segment in result.get("segments", []):
             segments.append({
-                "speaker": chunk.get("speaker", "Speaker 1"),
-                "start": chunk.get("timestamp", [0])[0],
-                "text": chunk.get("text", "").strip(),
+                "speaker": segment.get("speaker", "Speaker 1"),
+                "start": segment.get("start", 0),
+                "text": segment.get("text", "").strip(),
             })
 
         return {
@@ -89,17 +130,14 @@ def handler(job):
             "transcript": {"segments": segments},
         }
 
-    except subprocess.CalledProcessError as e:
-        return {"error": "Transcription failed", "details": e.stderr[-2000:]}
-    except subprocess.TimeoutExpired:
-        return {"error": "Transcription timed out (>10 min)"}
     except Exception as e:
         return {"error": str(e)}
     finally:
-        # CRITICAL: Purge audio and transcript immediately after processing
-        for path in [local_audio_path, output_json_path]:
+        # Step 6: Critical Garbage Collection
+        for path in [local_audio_path, clean_audio_path]:
             if os.path.exists(path):
                 os.remove(path)
-
+        
+        purge_resources()
 
 runpod.serverless.start({"handler": handler})

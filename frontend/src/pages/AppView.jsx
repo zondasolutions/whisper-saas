@@ -16,6 +16,7 @@ export default function AppView() {
     const [status, setStatus] = useState('idle'); // idle | uploading | processing | done
     const [file, setFile] = useState(null);
     const [audioDuration, setAudioDuration] = useState(0); // Stores duration from UploadArea
+    const [diarizationOptions, setDiarizationOptions] = useState({ numSpeakers: '', minSpeakers: '', maxSpeakers: '' });
     const [result, setResult] = useState(null);
     const { showToast } = useToast();
     const { isLoggedIn, user, logout } = useAuth();
@@ -31,7 +32,7 @@ export default function AppView() {
 
             setStatus('processing');
             // Step 3: Submit transcription job to RunPod via backend
-            const transcribeRes = await apiClient.transcribe(fileKey, audioDuration);
+            const transcribeRes = await apiClient.transcribe(fileKey, audioDuration, diarizationOptions);
             const jobId = transcribeRes.job_id;
 
             // Step 4: Poll for result (every 3s, timeout after 5 min)
@@ -130,6 +131,8 @@ export default function AppView() {
                                 setFile={setFile} 
                                 setAudioDuration={setAudioDuration}
                                 onTranscribe={handleTranscribe} 
+                                diarizationOptions={diarizationOptions}
+                                setDiarizationOptions={setDiarizationOptions}
                             />
                         )}
 
