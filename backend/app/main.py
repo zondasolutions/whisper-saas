@@ -6,7 +6,13 @@ from .api.endpoints.v1.users import user_router
 from .api.endpoints.v1.auth import auth_router
 from .api.endpoints.v1.webhooks import webhook_router
 from .api.endpoints.v1.plans import plan_router
+from .core.db import create_tables
+from . import models
 app = FastAPI(title="Whisper SaaS Config - MVP Backend", version="1.0.0")
+
+@app.on_event("startup")
+def on_startup():
+    create_tables()
 
 # Read allowed origins from env var (comma-separated) — no rebuild needed when adding new frontends
 _raw_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:3000")
