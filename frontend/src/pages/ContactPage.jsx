@@ -3,13 +3,15 @@ import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 import Orb from '../components/common/Orb';
 import { useToast } from '../components/common/Toast';
+import { useTranslation } from 'react-i18next';
 
 export default function ContactPage() {
     const { showToast } = useToast();
+    const { t } = useTranslation();
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        showToast('Your message has been sent successfully. Our team will contact you shortly!', 'success');
+        showToast(t('contact.sentToast'), 'success');
     };
 
     const containerVariants = {
@@ -43,10 +45,10 @@ export default function ContactPage() {
 
                     <motion.div variants={itemVariants} className="text-center mb-16">
                         <h1 className="text-5xl md:text-7xl font-extrabold font-headline leading-tight text-white mb-6 tracking-tight">
-                            Get in <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">Touch</span>
+                            {t('contact.title1')} <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">{t('contact.title2')}</span>
                         </h1>
                         <p className="text-xl text-on-surface-variant max-w-2xl mx-auto">
-                            Have questions about an Enterprise plan? Need custom Whisper models? Our engineering team is ready to help.
+                            {t('contact.subtitle')}
                         </p>
                     </motion.div>
 
@@ -55,10 +57,9 @@ export default function ContactPage() {
                         {/* Contact Info Sidebar */}
                         <motion.div variants={itemVariants} className="space-y-12 lg:pr-12 lg:border-r border-white/10">
                             <div>
-                                <h3 className="text-2xl font-bold text-white mb-6">Let's talk scale.</h3>
+                                <h3 className="text-2xl font-bold text-white mb-6">{t('contact.sidebarTitle')}</h3>
                                 <p className="text-on-surface-variant leading-relaxed">
-                                    We specialize in high-throughput audio pipelines. Whether you're processing 100 hours or 100,000 hours of
-                                    audio per month, Voxify can be tailored to your precise infrastructure needs.
+                                    {t('contact.sidebarText')}
                                 </p>
                             </div>
 
@@ -68,8 +69,8 @@ export default function ContactPage() {
                                         <span className="material-symbols-outlined text-xl">location_on</span>
                                     </div>
                                     <div>
-                                        <h4 className="text-white font-bold mb-1">Global HQ</h4>
-                                        <p className="text-on-surface-variant text-sm">100 AI Avenue, Tech District<br />San Francisco, CA 94105</p>
+                                        <h4 className="text-white font-bold mb-1">{t('contact.hqTitle')}</h4>
+                                        <p className="text-on-surface-variant text-sm">{t('contact.hqLine1')}<br />{t('contact.hqLine2')}</p>
                                     </div>
                                 </div>
 
@@ -78,7 +79,7 @@ export default function ContactPage() {
                                         <span className="material-symbols-outlined text-xl">mail</span>
                                     </div>
                                     <div>
-                                        <h4 className="text-white font-bold mb-1">Enterprise Sales</h4>
+                                        <h4 className="text-white font-bold mb-1">{t('contact.salesTitle')}</h4>
                                         <a href="mailto:enterprise@voxify.ai" className="text-on-surface-variant hover:text-white transition-colors text-sm">enterprise@voxify.ai</a>
                                     </div>
                                 </div>
@@ -88,8 +89,8 @@ export default function ContactPage() {
                                         <span className="material-symbols-outlined text-xl">support_agent</span>
                                     </div>
                                     <div>
-                                        <h4 className="text-white font-bold mb-1">24/7 Support</h4>
-                                        <p className="text-on-surface-variant text-sm">Available for PRO & Enterprise tiers directly via the Dashboard.</p>
+                                        <h4 className="text-white font-bold mb-1">{t('contact.supportTitle')}</h4>
+                                        <p className="text-on-surface-variant text-sm">{t('contact.supportText')}</p>
                                     </div>
                                 </div>
                             </div>
@@ -101,24 +102,24 @@ export default function ContactPage() {
                             <form onSubmit={handleSubmit} className="relative glass-card rounded-3xl p-8 md:p-10 border border-white/10 space-y-6 bg-[#121317]/80 backdrop-blur-2xl">
                                 <div className="grid grid-cols-2 gap-6">
                                     <div>
-                                        <label className="block text-xs font-bold text-on-surface-variant mb-2 uppercase tracking-wide">First Name</label>
+                                        <label className="block text-xs font-bold text-on-surface-variant mb-2 uppercase tracking-wide">{t('contact.firstName')}</label>
                                         <input required type="text" className="w-full bg-surface-container border border-white/5 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-primary/50 transition-colors" placeholder="Jane" />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-on-surface-variant mb-2 uppercase tracking-wide">Last Name</label>
+                                        <label className="block text-xs font-bold text-on-surface-variant mb-2 uppercase tracking-wide">{t('contact.lastName')}</label>
                                         <input required type="text" className="w-full bg-surface-container border border-white/5 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-primary/50 transition-colors" placeholder="Doe" />
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-on-surface-variant mb-2 uppercase tracking-wide">Work Email</label>
+                                    <label className="block text-xs font-bold text-on-surface-variant mb-2 uppercase tracking-wide">{t('contact.workEmail')}</label>
                                     <input required type="email" className="w-full bg-surface-container border border-white/5 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-primary/50 transition-colors" placeholder="jane@company.com" />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-on-surface-variant mb-2 uppercase tracking-wide">Message</label>
-                                    <textarea required rows={5} className="w-full bg-surface-container border border-white/5 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-primary/50 transition-colors resize-none" placeholder="Tell us about your audio volume and specific needs..." />
+                                    <label className="block text-xs font-bold text-on-surface-variant mb-2 uppercase tracking-wide">{t('contact.message')}</label>
+                                    <textarea required rows={5} className="w-full bg-surface-container border border-white/5 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-primary/50 transition-colors resize-none" placeholder={t('contact.messagePlaceholder')} />
                                 </div>
                                 <button type="submit" className="w-full btn-primary justify-center text-base py-4 hover:scale-[1.02] active:scale-[0.98] transition-transform">
-                                    Send Message <span className="material-symbols-outlined ml-2 text-lg">send</span>
+                                    {t('contact.sendBtn')} <span className="material-symbols-outlined ml-2 text-lg">send</span>
                                 </button>
                             </form>
                         </motion.div>

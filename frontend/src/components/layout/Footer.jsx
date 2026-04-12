@@ -1,6 +1,37 @@
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import LanguageSwitcher from '../common/LanguageSwitcher';
 
 export default function Footer() {
+    const { t } = useTranslation();
+
+    const columns = [
+        {
+            titleKey: 'footer.platform',
+            links: [
+                { labelKey: 'footer.features', to: '/features' },
+                { labelKey: 'footer.apiDocs', to: '/docs' },
+                { labelKey: 'footer.integrations', to: '/integrations' },
+            ],
+        },
+        {
+            titleKey: 'footer.company',
+            links: [
+                { labelKey: 'footer.aboutUs', to: '/about' },
+                { labelKey: 'footer.careers', to: '/careers' },
+                { labelKey: 'footer.status', to: '/status' },
+            ],
+        },
+        {
+            titleKey: 'footer.legal',
+            links: [
+                { labelKey: 'footer.privacy', to: '/privacy' },
+                { labelKey: 'footer.terms', to: '/terms' },
+                { labelKey: 'footer.security', to: '/security' },
+            ],
+        },
+    ];
+
     return (
         <footer className="bg-[#121317] border-t border-white/5 py-16 px-8 relative z-10 w-full mt-auto">
             <div className="max-w-7xl mx-auto">
@@ -8,21 +39,17 @@ export default function Footer() {
                     <div className="space-y-6">
                         <Link to="/" className="text-2xl font-black text-primary-container font-headline">Voxify</Link>
                         <p className="text-gray-500 max-w-xs text-sm leading-relaxed">
-                            Transmuting sound into clarity. The world's fastest AI transcription engine for high-stakes professionals.
+                            {t('footer.tagline')}
                         </p>
                     </div>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-12">
-                        {[
-                            { title: 'Platform', links: [{ label: 'Features', to: '/features' }, { label: 'API Docs', to: '/docs' }, { label: 'Integrations', to: '/integrations' }] },
-                            { title: 'Company', links: [{ label: 'About Us', to: '/about' }, { label: 'Careers', to: '/careers' }, { label: 'Status', to: '/status' }] },
-                            { title: 'Legal', links: [{ label: 'Privacy Policy', to: '/privacy' }, { label: 'Terms of Service', to: '/terms' }, { label: 'Security', to: '/security' }] },
-                        ].map((col) => (
-                            <div key={col.title} className="space-y-4">
-                                <h4 className="text-white font-bold text-sm tracking-widest uppercase">{col.title}</h4>
+                        {columns.map((col) => (
+                            <div key={col.titleKey} className="space-y-4">
+                                <h4 className="text-white font-bold text-sm tracking-widest uppercase">{t(col.titleKey)}</h4>
                                 <ul className="space-y-2">
                                     {col.links.map((l) => (
-                                        <li key={l.label}>
-                                            <Link to={l.to} className="text-gray-500 hover:text-primary-container transition-colors text-sm">{l.label}</Link>
+                                        <li key={l.labelKey}>
+                                            <Link to={l.to} className="text-gray-500 hover:text-primary-container transition-colors text-sm">{t(l.labelKey)}</Link>
                                         </li>
                                     ))}
                                 </ul>
@@ -32,9 +59,10 @@ export default function Footer() {
                 </div>
                 <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
                     <p className="text-gray-500 text-sm tracking-wide">
-                        © 2024 Voxify AI. Desarrollado por <a href="https://zondasolutions.com/" target="_blank" rel="noopener noreferrer" className="text-primary hover:text-secondary transition-colors font-semibold">ZondaSolutions</a>
+                        {t('footer.copyright')} <a href="https://zondasolutions.com/" target="_blank" rel="noopener noreferrer" className="text-primary hover:text-secondary transition-colors font-semibold">ZondaSolutions</a>
                     </p>
-                    <div className="flex gap-6">
+                    <div className="flex items-center gap-6">
+                        <LanguageSwitcher />
                         <a href="#" className="text-gray-500 hover:text-white transition-colors">
                             <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.84 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z" /></svg>
                         </a>

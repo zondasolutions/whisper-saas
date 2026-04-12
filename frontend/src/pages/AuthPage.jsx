@@ -5,6 +5,7 @@ import Orb from '../components/common/Orb';
 import Navbar from '../components/layout/Navbar';
 import { useToast } from '../components/common/Toast';
 import { useAuth } from '../context/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 export default function AuthPage() {
     const [isLogin, setIsLogin] = useState(true);
@@ -19,16 +20,17 @@ export default function AuthPage() {
     const { showToast } = useToast();
     const navigate = useNavigate();
     const { login, register } = useAuth();
+    const { t } = useTranslation();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!email || !password || (!isLogin && !name)) {
-            showToast('Please fill in all required fields.', 'error');
+            showToast(t('auth.fillFields'), 'error');
             return;
         }
-        
+
         if (password.length < 8) {
-            showToast('Password must be at least 8 characters long.', 'error');
+            showToast(t('auth.passwordLength'), 'error');
             return;
         }
 
@@ -36,11 +38,11 @@ export default function AuthPage() {
         try {
             if (isLogin) {
                 await login(email, password);
-                showToast('Login successful! Redirecting...', 'success');
+                showToast(t('auth.loginSuccess'), 'success');
                 setTimeout(() => navigate('/app'), 500);
             } else {
                 await register(name, email, password);
-                showToast('Account created successfully! Welcome aboard.', 'success');
+                showToast(t('auth.registerSuccess'), 'success');
                 setTimeout(() => navigate('/app'), 500);
             }
         } catch (error) {
@@ -82,7 +84,7 @@ export default function AuthPage() {
                 <motion.div variants={containerVariants} className="text-center mb-10">
                     <Link to="/" className="text-4xl font-black font-headline text-white tracking-tight cursor-pointer hover:text-primary transition-colors">Voxify</Link>
                     <p className="text-on-surface-variant mt-3 text-sm tracking-wide">
-                        {isLogin ? 'Welcome back to your workspace' : 'Start transcribing at the speed of thought'}
+                        {isLogin ? t('auth.subtitleLogin') : t('auth.subtitleRegister')}
                     </p>
                 </motion.div>
 
@@ -97,14 +99,14 @@ export default function AuthPage() {
                                 onClick={() => setIsLogin(true)}
                                 className={`flex-1 text-center pb-2 font-bold transition-colors z-10 ${isLogin ? 'text-white' : 'text-on-surface-variant hover:text-white'}`}
                             >
-                                Sign In
+                                {t('auth.signIn')}
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setIsLogin(false)}
                                 className={`flex-1 text-center pb-2 font-bold transition-colors z-10 ${!isLogin ? 'text-white' : 'text-on-surface-variant hover:text-white'}`}
                             >
-                                Sign Up
+                                {t('auth.signUp')}
                             </button>
                             {/* Animated underline indicator */}
                             <motion.div
@@ -125,7 +127,7 @@ export default function AuthPage() {
                                         animate="visible"
                                         exit="exit"
                                     >
-                                        <label className="block text-[10px] font-bold text-on-surface-variant mb-2 uppercase tracking-widest pl-1 mt-2">Full Name</label>
+                                        <label className="block text-[10px] font-bold text-on-surface-variant mb-2 uppercase tracking-widest pl-1 mt-2">{t('auth.fullName')}</label>
                                         <div className="relative">
                                             <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg">person</span>
                                             <input
@@ -141,7 +143,7 @@ export default function AuthPage() {
                             </AnimatePresence>
 
                             <motion.div layout>
-                                <label className="block text-[10px] font-bold text-on-surface-variant mb-2 uppercase tracking-widest pl-1">Email Address</label>
+                                <label className="block text-[10px] font-bold text-on-surface-variant mb-2 uppercase tracking-widest pl-1">{t('auth.emailAddress')}</label>
                                 <div className="relative">
                                     <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg">mail</span>
                                     <input
@@ -155,7 +157,7 @@ export default function AuthPage() {
                             </motion.div>
 
                             <motion.div layout>
-                                <label className="block text-[10px] font-bold text-on-surface-variant mb-2 uppercase tracking-widest pl-1">Password</label>
+                                <label className="block text-[10px] font-bold text-on-surface-variant mb-2 uppercase tracking-widest pl-1">{t('auth.password')}</label>
                                 <div className="relative">
                                     <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg">lock</span>
                                     <input
@@ -190,9 +192,9 @@ export default function AuthPage() {
                                             <input type="checkbox" className="peer w-4 h-4 rounded border-white/20 bg-surface-container-lowest appearance-none checked:bg-primary transition-all cursor-pointer" />
                                             <span className="material-symbols-outlined absolute pointer-events-none text-white text-[12px] opacity-0 peer-checked:opacity-100 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">check</span>
                                         </div>
-                                        Remember me
+                                        {t('auth.rememberMe')}
                                     </label>
-                                    <a href="#" className="text-primary hover:text-secondary transition-colors font-semibold tracking-wide">Forgot password?</a>
+                                    <a href="#" className="text-primary hover:text-secondary transition-colors font-semibold tracking-wide">{t('auth.forgotPassword')}</a>
                                 </motion.div>
                             )}
                         </AnimatePresence>
@@ -219,11 +221,11 @@ export default function AuthPage() {
                                         >
                                             progress_activity
                                         </motion.span>
-                                        {isLogin ? 'Authenticating...' : 'Creating Account...'}
+                                        {isLogin ? t('auth.authenticating') : t('auth.creatingAccount')}
                                     </>
                                 ) : (
                                     <>
-                                        {isLogin ? 'Sign In Securely' : 'Create Free Account'}
+                                        {isLogin ? t('auth.btnSignIn') : t('auth.btnSignUp')}
                                         <span className="material-symbols-outlined text-lg">arrow_forward</span>
                                     </>
                                 )}
@@ -233,8 +235,8 @@ export default function AuthPage() {
                 </motion.div>
 
                 <motion.p variants={containerVariants} className="text-center mt-8 text-on-surface-variant text-xs tracking-wide">
-                    By continuing, you agree to Voxify's <br />
-                    <a href="#" className="text-white hover:text-primary transition-colors border-b border-white/20 hover:border-primary pb-px">Terms of Service</a> and <a href="#" className="text-white hover:text-primary transition-colors border-b border-white/20 hover:border-primary pb-px">Privacy Policy</a>
+                    {t('auth.termsText')} <br />
+                    <a href="#" className="text-white hover:text-primary transition-colors border-b border-white/20 hover:border-primary pb-px">{t('auth.termsLink')}</a> {t('i18nAnd', { defaultValue: 'and' })} <a href="#" className="text-white hover:text-primary transition-colors border-b border-white/20 hover:border-primary pb-px">{t('auth.privacyLink')}</a>
                 </motion.p>
             </div>
         </motion.div>

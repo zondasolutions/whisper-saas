@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 export default function HistoryView({ onViewResult }) {
     const [history, setHistory] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
     const { user } = useAuth();
+    const { t } = useTranslation();
 
     useEffect(() => {
         try {
@@ -38,7 +40,7 @@ export default function HistoryView({ onViewResult }) {
         visible: { opacity: 1, y: 0 }
     };
 
-    const filteredHistory = history.filter(item => 
+    const filteredHistory = history.filter(item =>
         item.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
@@ -51,10 +53,10 @@ export default function HistoryView({ onViewResult }) {
         >
             <div className="flex items-center justify-between mb-8">
                 <div>
-                    <h1 className="text-3xl font-bold font-headline text-white mb-2">Private History</h1>
+                    <h1 className="text-3xl font-bold font-headline text-white mb-2">{t('history.title')}</h1>
                     <p className="text-on-surface-variant flex items-center gap-1">
                         <span className="material-symbols-outlined text-sm">lock</span>
-                        Stored locally. Zero data rentention in cloud.
+                        {t('history.subtitle')}
                     </p>
                 </div>
                 <div className="relative">
@@ -63,7 +65,7 @@ export default function HistoryView({ onViewResult }) {
                         type="text"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Search files..."
+                        placeholder={t('history.searchPlaceholder')}
                         className="bg-surface-container border border-white/5 rounded-full pl-10 pr-4 py-2 text-sm text-white focus:outline-none focus:border-primary/50 transition-colors w-64"
                     />
                 </div>
@@ -73,11 +75,11 @@ export default function HistoryView({ onViewResult }) {
                 <table className="w-full text-left border-collapse">
                     <thead>
                         <tr className="border-b border-white/10 bg-surface-container-high/50">
-                            <th className="py-4 px-6 text-xs font-bold text-on-surface-variant uppercase tracking-widest">File Name</th>
-                            <th className="py-4 px-6 text-xs font-bold text-on-surface-variant uppercase tracking-widest">Date</th>
-                            <th className="py-4 px-6 text-xs font-bold text-on-surface-variant uppercase tracking-widest">Duration</th>
-                            <th className="py-4 px-6 text-xs font-bold text-on-surface-variant uppercase tracking-widest">Status</th>
-                            <th className="py-4 px-6 text-xs font-bold text-on-surface-variant uppercase tracking-widest text-right">Actions</th>
+                            <th className="py-4 px-6 text-xs font-bold text-on-surface-variant uppercase tracking-widest">{t('history.fileName')}</th>
+                            <th className="py-4 px-6 text-xs font-bold text-on-surface-variant uppercase tracking-widest">{t('history.date')}</th>
+                            <th className="py-4 px-6 text-xs font-bold text-on-surface-variant uppercase tracking-widest">{t('history.duration')}</th>
+                            <th className="py-4 px-6 text-xs font-bold text-on-surface-variant uppercase tracking-widest">{t('history.status')}</th>
+                            <th className="py-4 px-6 text-xs font-bold text-on-surface-variant uppercase tracking-widest text-right">{t('history.actions')}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -106,16 +108,16 @@ export default function HistoryView({ onViewResult }) {
                                 </td>
                                 <td className="py-4 px-6 text-right" onClick={e => e.stopPropagation()}>
                                     <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <button 
+                                        <button
                                             onClick={() => onViewResult && onViewResult(item)}
-                                            className="p-1.5 rounded-lg text-on-surface-variant hover:text-white hover:bg-surface-container-highest transition-colors" 
+                                            className="p-1.5 rounded-lg text-on-surface-variant hover:text-white hover:bg-surface-container-highest transition-colors"
                                             title="View Transcript"
                                         >
                                             <span className="material-symbols-outlined text-sm">visibility</span>
                                         </button>
-                                        <button 
+                                        <button
                                             onClick={() => handleDelete(item.id)}
-                                            className="p-1.5 rounded-lg text-error hover:bg-error-container/20 transition-colors" 
+                                            className="p-1.5 rounded-lg text-error hover:bg-error-container/20 transition-colors"
                                             title="Delete"
                                         >
                                             <span className="material-symbols-outlined text-sm">delete</span>
@@ -130,14 +132,14 @@ export default function HistoryView({ onViewResult }) {
                 {history.length === 0 && (
                     <div className="p-12 text-center text-on-surface-variant">
                         <span className="material-symbols-outlined text-4xl mb-3 opacity-50">history</span>
-                        <p className="text-sm">No transcriptions found in history.</p>
-                        <p className="text-xs mt-1">Transcriptions will be saved locally on this device.</p>
+                        <p className="text-sm">{t('history.noHistory')}</p>
+                        <p className="text-xs mt-1">{t('history.noHistoryHint')}</p>
                     </div>
                 )}
                 {history.length > 0 && filteredHistory.length === 0 && (
                     <div className="p-12 text-center text-on-surface-variant">
                         <span className="material-symbols-outlined text-4xl mb-3 opacity-50">search_off</span>
-                        <p className="text-sm">No matching history found.</p>
+                        <p className="text-sm">{t('history.noResults')}</p>
                     </div>
                 )}
             </div>
