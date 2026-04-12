@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { useToast } from '../common/Toast';
 import { useAuth } from '../../context/AuthContext';
 
-export default function UploadArea({ file, setFile, setAudioDuration, onTranscribe }) {
+export default function UploadArea({ file, setFile, setAudioDuration, onTranscribe, diarizationOptions, setDiarizationOptions }) {
     const [isDragging, setIsDragging] = useState(false);
     const fileInputRef = useRef(null);
     const { showToast } = useToast();
@@ -98,6 +98,55 @@ export default function UploadArea({ file, setFile, setAudioDuration, onTranscri
             </div>
 
             <input ref={fileInputRef} type="file" accept="audio/*" className="hidden" onChange={handleFileChange} />
+
+            {file && (
+                <div className="mt-8 p-6 bg-surface border border-outline-variant/30 rounded-2xl flex flex-col gap-4 text-left">
+                    <div>
+                        <h3 className="text-lg font-semibold text-on-surface">Speaker Diarization Options</h3>
+                        <p className="text-sm text-on-surface-variant">Help the AI identify speakers more accurately by providing hints.</p>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                        <div>
+                            <label className="block text-sm font-medium text-on-surface mb-1">Exact Number of Speakers</label>
+                            <input 
+                                type="number" 
+                                min="1" 
+                                className="w-full bg-surface-container text-on-surface px-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50" 
+                                placeholder="Auto"
+                                value={diarizationOptions?.numSpeakers || ''}
+                                onChange={(e) => setDiarizationOptions(prev => ({ ...prev, numSpeakers: e.target.value, minSpeakers: '', maxSpeakers: '' }))}
+                            />
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                            <div>
+                                <label className="block text-sm font-medium text-on-surface mb-1">Min Speakers</label>
+                                <input 
+                                    type="number" 
+                                    min="1" 
+                                    className="w-full bg-surface-container text-on-surface px-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50" 
+                                    placeholder="Auto"
+                                    disabled={!!diarizationOptions?.numSpeakers}
+                                    value={diarizationOptions?.numSpeakers ? '' : (diarizationOptions?.minSpeakers || '')}
+                                    onChange={(e) => setDiarizationOptions(prev => ({ ...prev, minSpeakers: e.target.value }))}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-on-surface mb-1">Max Speakers</label>
+                                <input 
+                                    type="number" 
+                                    min="1" 
+                                    className="w-full bg-surface-container text-on-surface px-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50" 
+                                    placeholder="Auto"
+                                    disabled={!!diarizationOptions?.numSpeakers}
+                                    value={diarizationOptions?.numSpeakers ? '' : (diarizationOptions?.maxSpeakers || '')}
+                                    onChange={(e) => setDiarizationOptions(prev => ({ ...prev, maxSpeakers: e.target.value }))}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <div className="text-center mt-8">
                 <button

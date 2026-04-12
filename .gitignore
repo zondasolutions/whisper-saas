@@ -102,3 +102,5 @@ test_env/
 *.swo
 .DS_Store
 Thumbs.db
+
+GEMINI.md

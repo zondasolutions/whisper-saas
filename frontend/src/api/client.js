@@ -57,11 +57,18 @@ export const apiClient = {
    * Submits a transcription job to the backend, which dispatches it to RunPod.
    * Returns { job_id } for polling.
    */
-  async transcribe(fileKey, durationSeconds = 0) {
+  async transcribe(fileKey, durationSeconds = 0, options = {}) {
+    const { numSpeakers, minSpeakers, maxSpeakers } = options;
+    const bodyArgs = { file_key: fileKey, duration_seconds: Math.ceil(durationSeconds) };
+    
+    if (numSpeakers) bodyArgs.num_speakers = parseInt(numSpeakers, 10);
+    if (minSpeakers) bodyArgs.min_speakers = parseInt(minSpeakers, 10);
+    if (maxSpeakers) bodyArgs.max_speakers = parseInt(maxSpeakers, 10);
+
     const response = await fetch(`${API_BASE_URL}/transcribe`, {
       method: 'POST',
       headers: this.getHeaders({ 'Content-Type': 'application/json' }),
-      body: JSON.stringify({ file_key: fileKey, duration_seconds: Math.ceil(durationSeconds) }),
+      body: JSON.stringify(bodyArgs),
     });
 
     if (!response.ok) {

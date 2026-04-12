@@ -2,7 +2,12 @@ import requests
 from app.core.config import settings
 from fastapi import HTTPException
 
-def submit_transcription_job(audio_url: str) -> str:
+def submit_transcription_job(
+    audio_url: str,
+    num_speakers: int | None = None,
+    min_speakers: int | None = None,
+    max_speakers: int | None = None,
+) -> str:
     """Submits a job to the RunPod serverless endpoint."""
     if not settings.RUNPOD_ENDPOINT_ID or not settings.RUNPOD_API_KEY:
         # Simulate local development by returning a dummy Job ID
@@ -19,6 +24,13 @@ def submit_transcription_job(audio_url: str) -> str:
         }
     }
     
+    if num_speakers is not None:
+        payload["input"]["num_speakers"] = num_speakers
+    if min_speakers is not None:
+        payload["input"]["min_speakers"] = min_speakers
+    if max_speakers is not None:
+        payload["input"]["max_speakers"] = max_speakers
+        
     response = requests.post(url, headers=headers, json=payload)
     if response.status_code != 200:
         raise HTTPException(
