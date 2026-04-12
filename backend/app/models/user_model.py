@@ -13,3 +13,4 @@ class User(BaseModel):
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False)
     
     subscriptions: Mapped[list["Subscription"]] = relationship("Subscription", back_populates="user")
+    usages: Mapped[list["UserUsage"]] = relationship("UserUsage", back_populates="user")

@@ -1,6 +1,10 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
+import PaywallModal from './PaywallModal';
 
 export default function SettingsView() {
+    const [showPaywall, setShowPaywall] = useState(false);
+
     const containerVariants = {
         hidden: { opacity: 0 },
         visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
@@ -18,12 +22,31 @@ export default function SettingsView() {
             animate="visible"
             className="max-w-4xl mx-auto pt-8"
         >
+            <PaywallModal isOpen={showPaywall} onClose={() => setShowPaywall(false)} />
+
             <div className="mb-8">
                 <h1 className="text-3xl font-bold font-headline text-white mb-2">Settings</h1>
                 <p className="text-on-surface-variant">Manage your account preferences and API integrations.</p>
             </div>
 
             <div className="space-y-6">
+
+                {/* Subscription Card */}
+                <motion.div variants={itemVariants} className="glass-card rounded-2xl p-6 border border-primary/30 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-2xl pointer-events-none" />
+                    <div className="flex items-center justify-between relative z-10">
+                        <div>
+                            <h3 className="text-lg font-bold text-white mb-1">Plan Actual: Free (Demo)</h3>
+                            <p className="text-on-surface-variant text-sm">Has usado 30 min de tu cuota mensual.</p>
+                        </div>
+                        <button 
+                            onClick={() => setShowPaywall(true)}
+                            className="bg-primary hover:bg-primary/90 text-white px-6 py-2 rounded-xl text-sm font-bold transition-colors shadow-lg shadow-primary/20"
+                        >
+                            Ver Planes Premium
+                        </button>
+                    </div>
+                </motion.div>
 
                 {/* Profile Card */}
                 <motion.div variants={itemVariants} className="glass-card rounded-2xl p-6 border border-white/5">

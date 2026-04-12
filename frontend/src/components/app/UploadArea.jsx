@@ -1,13 +1,12 @@
 import { useRef, useState } from 'react';
 import { useToast } from '../common/Toast';
+import { useAuth } from '../../context/AuthContext';
 
-export default function UploadArea({ file, setFile, onTranscribe }) {
+export default function UploadArea({ file, setFile, setAudioDuration, onTranscribe }) {
     const [isDragging, setIsDragging] = useState(false);
     const fileInputRef = useRef(null);
     const { showToast } = useToast();
-
-    // Placeholder until Auth Context is integrated
-    const isLoggedIn = false; 
+    const { isLoggedIn } = useAuth();
 
     const validateAndSetFile = (f) => {
         if (!f) return;
@@ -17,12 +16,14 @@ export default function UploadArea({ file, setFile, onTranscribe }) {
         
         audio.onloadedmetadata = () => {
             URL.revokeObjectURL(objectUrl);
+            const duration = audio.duration;
             const limitSeconds = 3 * 60;
             
-            if (!isLoggedIn && audio.duration > limitSeconds) {
-                showToast(`Para cuentas gratuitas el límite es de 3 minutos. Su archivo dura ${Math.floor(audio.duration / 60)}m ${Math.floor(audio.duration%60)}s. Registrate o acorta el audio.`, 'error');
+            if (!isLoggedIn && duration > limitSeconds) {
+                showToast(`Para cuentas gratuitas el límite es de 3 minutos. Su archivo dura ${Math.floor(duration / 60)}m ${Math.floor(duration%60)}s. Registrate o acorta el audio.`, 'error');
                 return;
             }
+            if (setAudioDuration) setAudioDuration(duration);
             setFile(f);
         };
         audio.onerror = () => {

@@ -8,14 +8,17 @@ import ProcessingStatus from '../components/app/ProcessingStatus';
 import TranscriptionResult from '../components/app/TranscriptionResult';
 import HistoryView from '../components/app/HistoryView';
 import SettingsView from '../components/app/SettingsView';
+import { useAuth } from '../context/AuthContext';
 
 export default function AppView() {
     const [sidebarOpen, setSidebarOpen] = useState(true);
     const [currentView, setCurrentView] = useState('new'); // 'new' | 'history' | 'settings'
     const [status, setStatus] = useState('idle'); // idle | uploading | processing | done
     const [file, setFile] = useState(null);
+    const [audioDuration, setAudioDuration] = useState(0); // Stores duration from UploadArea
     const [result, setResult] = useState(null);
     const { showToast } = useToast();
+    const { isLoggedIn, user, logout } = useAuth();
 
     const handleTranscribe = async () => {
         if (!file) return;
@@ -28,7 +31,7 @@ export default function AppView() {
 
             setStatus('processing');
             // Step 3: Submit transcription job to RunPod via backend
-            const transcribeRes = await apiClient.transcribe(fileKey);
+            const transcribeRes = await apiClient.transcribe(fileKey, audioDuration);
             const jobId = transcribeRes.job_id;
 
             // Step 4: Poll for result (every 3s, timeout after 5 min)
@@ -41,30 +44,33 @@ export default function AppView() {
                     setResult(statusRes.transcript);
                     setStatus('done');
 
-                    try {
-                        const history = JSON.parse(localStorage.getItem('whisper_history_v1') || '[]');
-                        
-                        // Try to estimate duration from last segment
-                        let dur = "00:00";
-                        if (statusRes.transcript?.segments?.length > 0) {
-                            const lastSeg = statusRes.transcript.segments[statusRes.transcript.segments.length - 1];
-                            const s = lastSeg.start + 5;
-                            const m = Math.floor(s / 60);
-                            const sec = Math.floor(s % 60);
-                            dur = `${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
-                        }
+                    if (isLoggedIn) {
+                        try {
+                            const history = JSON.parse(localStorage.getItem('whisper_history_v1') || '[]');
+                            
+                            let dur = "00:00";
+                            if (statusRes.transcript?.segments?.length > 0) {
+                                const lastSeg = statusRes.transcript.segments[statusRes.transcript.segments.length - 1];
+                                const s = lastSeg.start + 5;
+                                const m = Math.floor(s / 60);
+                                const sec = Math.floor(s % 60);
+                                dur = `${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+                            }
 
-                        history.unshift({
-                            id: Date.now().toString(),
-                            name: file.name,
-                            date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-                            duration: dur,
-                            status: 'Completed',
-                            result: statusRes.transcript
-                        });
-                        localStorage.setItem('whisper_history_v1', JSON.stringify(history));
-                    } catch (e) {
-                        console.error('Failed to save history', e);
+                            history.unshift({
+                                id: Date.now().toString(),
+                                name: file.name,
+                                date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                                duration: dur,
+                                status: 'Completed',
+                                result: statusRes.transcript
+                            });
+                            localStorage.setItem('whisper_history_v1', JSON.stringify(history));
+                        } catch (e) {
+                            console.error('Failed to save history', e);
+                        }
+                    } else {
+                        showToast('Tu transcripción no se ha guardado porque no has iniciado sesión.', 'info');
                     }
 
                     showToast('Transcription completed successfully!', 'success');
@@ -118,7 +124,12 @@ export default function AppView() {
                 {currentView === 'new' && (
                     <>
                         {status === 'idle' && (
-                            <UploadArea file={file} setFile={setFile} onTranscribe={handleTranscribe} />
+                            <UploadArea 
+                                file={file} 
+                                setFile={setFile} 
+                                setAudioDuration={setAudioDuration}
+                                onTranscribe={handleTranscribe} 
+                            />
                         )}
 
                         {(status === 'uploading' || status === 'processing') && (

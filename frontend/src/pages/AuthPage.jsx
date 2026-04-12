@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Orb from '../components/common/Orb';
 import Navbar from '../components/layout/Navbar';
 import { useToast } from '../components/common/Toast';
+import { useAuth } from '../context/AuthContext';
 
 export default function AuthPage() {
     const [isLogin, setIsLogin] = useState(true);
@@ -17,8 +18,9 @@ export default function AuthPage() {
 
     const { showToast } = useToast();
     const navigate = useNavigate();
+    const { login, register } = useAuth();
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (!email || !password || (!isLogin && !name)) {
             showToast('Please fill in all required fields.', 'error');
@@ -26,18 +28,21 @@ export default function AuthPage() {
         }
 
         setIsLoading(true);
-        setTimeout(() => {
-            setIsLoading(false);
-            if (email === 'demo@voxify.ai' && password === 'admin' && isLogin) {
+        try {
+            if (isLogin) {
+                await login(email, password);
                 showToast('Login successful! Redirecting...', 'success');
-                setTimeout(() => navigate('/app'), 1000);
-            } else if (isLogin) {
-                showToast('Invalid credentials. Try demo@voxify.ai / admin', 'error');
+                setTimeout(() => navigate('/app'), 500);
             } else {
+                await register(name, email, password);
                 showToast('Account created successfully! Welcome aboard.', 'success');
-                setTimeout(() => navigate('/app'), 1000);
+                setTimeout(() => navigate('/app'), 500);
             }
-        }, 1500);
+        } catch (error) {
+            showToast(error.message, 'error');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const containerVariants = {
