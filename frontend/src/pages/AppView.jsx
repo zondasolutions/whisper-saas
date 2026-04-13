@@ -37,8 +37,8 @@ export default function AppView() {
             const transcribeRes = await apiClient.transcribe(fileKey, audioDuration, diarizationOptions);
             const jobId = transcribeRes.job_id;
 
-            // Step 4: Poll for result (every 3s, timeout after 5 min)
-            const MAX_POLLS = 100;
+            // Step 4: Poll for result (every 3s, timeout after 15 min)
+            const MAX_POLLS = 300;
             for (let i = 0; i < MAX_POLLS; i++) {
                 await new Promise(resolve => setTimeout(resolve, 3000));
                 const statusRes = await apiClient.getStatus(jobId);
