@@ -5,11 +5,11 @@ from sqlalchemy.orm import Session
 
 from ....core.db import get_db_session as get_db
 from ....repositories.plan_repo import PlanRepo
-from ....schemas.plan_schema import PlanCreateSchema, PlanUpdateSchema, PlanResponseSchema
+from ....schemas.plan_schema import PlanCreateSchema, PlanDetailSchema, PlanUpdateSchema, PlanResponseSchema
 from ....services.plan_service import PlanService
 
 
-plan_router = APIRouter(prefix="/plans", tags=["plans"])
+plan_router = APIRouter(prefix="/plans")
 
 
 def get_plan_repo(db: Session = Depends(get_db)) -> PlanRepo:
@@ -53,3 +53,11 @@ async def delete_plan(
     plan_service: PlanService = Depends(get_plan_service)
 ):
     return plan_service.delete_plan(plan_id)
+
+@plan_router.patch("/{plan_id}/details", response_model=PlanResponseSchema)
+async def update_plan_details(
+    plan_id: UUID,
+    data: PlanDetailSchema,
+    plan_service: PlanService = Depends(get_plan_service)
+) -> PlanResponseSchema:
+    return plan_service.update_plan_details(plan_id, data)

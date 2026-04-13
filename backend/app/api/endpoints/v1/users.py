@@ -8,7 +8,7 @@ from ....services.user_service import UserService
 from ....repositories.user_repo import UserRepo
 from ....schemas.user_schema import UserCreateSchema, UserUpdateSchema, UserResponseSchema
 
-user_router = APIRouter(prefix="/users", tags=["users"])
+user_router = APIRouter(prefix="/users")
 
 def get_user_repo(db: Session = Depends(get_db)) -> UserRepo:
     return UserRepo(db)
