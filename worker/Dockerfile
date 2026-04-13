@@ -24,6 +24,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Point HuggingFace to Network Volume cache (also set in handler.py at runtime)
 ENV HF_HOME=/runpod-volume/hf_cache
 ENV TRANSFORMERS_CACHE=/runpod-volume/hf_cache
+# Reduce VRAM fragmentation for long audio files on 24GB GPUs
+ENV PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
 WORKDIR /app
 
@@ -44,7 +46,7 @@ RUN pip install --no-cache-dir nvidia-cudnn-cu12==8.9.7.29 && \
 COPY requirements.txt /app/
 
 # Phase 3: Install remaining Python dependencies (whisperx, deepfilternet, etc.)
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --default-timeout=1000 --retries 10 --no-cache-dir -r requirements.txt
 
 COPY handler.py /app/handler.py
 

@@ -15,7 +15,7 @@ os.environ["TRANSFORMERS_CACHE"] = "/runpod-volume/hf_cache"
 # Global Model Caches for zero-latency warm starts
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 COMPUTE_TYPE = "float16" if torch.cuda.is_available() else "int8"
-BATCH_SIZE = 16
+BATCH_SIZE = 8
 
 WHISPER_MODEL = None
 DIARIZE_MODEL = None
@@ -53,6 +53,47 @@ def purge_resources():
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
 
+def enhance_chunked(df_model, df_state, audio_tensor, chunk_duration_s=300):
+    """Process audio through DeepFilterNet in chunks to avoid GPU OOM on long audio.
+    
+    DeepFilterNet processes the full spectral tensor in one shot, which causes
+    OOM on audio longer than ~15 minutes (the conv2d layer tries to allocate
+    12+ GiB for the intermediate tensor). This function splits the audio into
+    manageable segments and processes each one independently.
+    
+    Args:
+        chunk_duration_s: Duration of each chunk in seconds (default: 300 = 5 min)
+    """
+    sr = df_state.sr()
+    chunk_samples = chunk_duration_s * sr
+    total_samples = audio_tensor.shape[-1]
+    
+    # Short audio: process directly (no chunking overhead)
+    if total_samples <= chunk_samples:
+        return enhance(df_model, df_state, audio_tensor)
+    
+    total_duration = total_samples / sr
+    num_chunks = (total_samples + chunk_samples - 1) // chunk_samples
+    print(f"Audio is {total_duration:.0f}s — chunking into {num_chunks} segments of {chunk_duration_s}s for noise cleanup...")
+    
+    enhanced_chunks = []
+    
+    for i in range(num_chunks):
+        start = i * chunk_samples
+        end = min((i + 1) * chunk_samples, total_samples)
+        chunk = audio_tensor[..., start:end]
+        
+        print(f"  Cleaning chunk {i+1}/{num_chunks} ({start/sr:.0f}s – {end/sr:.0f}s)...")
+        enhanced_chunk = enhance(df_model, df_state, chunk)
+        enhanced_chunks.append(enhanced_chunk.cpu())
+        
+        # Free GPU memory between chunks
+        del chunk, enhanced_chunk
+        purge_resources()
+    
+    # Concatenate all enhanced chunks and return
+    return torch.cat(enhanced_chunks, dim=-1)
+
 def download_file(url: str, local_path: str):
     response = requests.get(url, stream=True, timeout=300)
     response.raise_for_status()
@@ -80,26 +121,39 @@ def handler(job):
         # Step 1: Download audio
         download_file(audio_url, local_audio_path)
 
-        # Step 2: DeepFilterNet Enhancement (in RAM -> Temp WAV)
+        # Step 2: DeepFilterNet Enhancement (chunked for long audio)
         df_model, df_state = get_df_model()
         df_audio, _ = load_audio(local_audio_path, sr=df_state.sr())
-        
-        # Audio must ideally be short chunks or at least enhanced properly
-        # enhance supports full tensors, let it process the whole thing.
-        enhanced = enhance(df_model, df_state, df_audio)
+        enhanced = enhance_chunked(df_model, df_state, df_audio)
         save_audio(clean_audio_path, enhanced, df_state.sr())
         del df_audio, enhanced
+
+        # VRAM Optimization: Move DeepFilterNet to CPU after use to free ~1.5GB VRAM
+        # for WhisperX and Diarization which need much more memory on long audio.
+        df_model.to("cpu")
         purge_resources()
 
         # Step 3: Transcribe with WhisperX
         whisper_model = get_whisper_model()
         audio = whisperx.load_audio(clean_audio_path)
         result = whisper_model.transcribe(audio, batch_size=BATCH_SIZE)
+
+        # VRAM Optimization: Free transcription KV-cache before alignment
+        purge_resources()
         
         # Step 4: Align
         language = result.get("language", "en")
         model_a, metadata = get_align_model(language)
         result = whisperx.align(result["segments"], model_a, metadata, audio, DEVICE, return_char_alignments=False)
+
+        # VRAM Optimization: Move Whisper and Align models to CPU before Diarization
+        # This frees up ~7-8GB of VRAM for the heaviest stage.
+        if WHISPER_MODEL:
+            WHISPER_MODEL.model.to("cpu")
+        for m_a, _ in ALIGN_MODELS.values():
+            m_a.to("cpu")
+            
+        purge_resources()
         
         # Step 5: Diarization based on Optional Arguments
         if hf_token:
@@ -115,6 +169,10 @@ def handler(job):
             
             diarize_segments = diarize_model(audio, **diarize_kwargs)
             result = whisperx.assign_word_speakers(diarize_segments, result)
+
+            # Move Whisper back to GPU for next jobs (optional, but good for latency)
+            if WHISPER_MODEL:
+                WHISPER_MODEL.model.to(DEVICE)
         
         # Final Format Cleanup
         segments = []
@@ -131,6 +189,8 @@ def handler(job):
         }
 
     except Exception as e:
+        import traceback
+        print(f"--- WORKER ERROR ---\n{traceback.format_exc()}")
         return {"error": str(e)}
     finally:
         # Step 6: Critical Garbage Collection

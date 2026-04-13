@@ -10,7 +10,21 @@ const PIPELINE_STEPS = [
 
 export default function ProcessingStatus({ status }) {
     const [activeStep, setActiveStep] = useState(0);
+    const [elapsed, setElapsed] = useState(0);
     const { t } = useTranslation();
+
+    // Elapsed time counter
+    useEffect(() => {
+        setElapsed(0);
+        const interval = setInterval(() => setElapsed(s => s + 1), 1000);
+        return () => clearInterval(interval);
+    }, []);
+
+    const formatTime = (s) => {
+        const m = Math.floor(s / 60);
+        const sec = s % 60;
+        return `${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+    };
 
     useEffect(() => {
         if (status === 'uploading') {
@@ -43,6 +57,9 @@ export default function ProcessingStatus({ status }) {
                     </span>
                 </div>
             </div>
+
+            {/* Elapsed Timer */}
+            <p className="text-on-surface-variant font-mono text-lg tracking-widest">{formatTime(elapsed)}</p>
 
             {/* Title */}
             <div>
