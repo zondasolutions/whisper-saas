@@ -7,6 +7,14 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
+    libavcodec-dev \
+    libavformat-dev \
+    libavdevice-dev \
+    libavfilter-dev \
+    libswresample-dev \
+    libswscale-dev \
+    libavutil-dev \
+    pkg-config \
     git \
     wget \
     build-essential \
@@ -18,6 +26,11 @@ ENV HF_HOME=/runpod-volume/hf_cache
 ENV TRANSFORMERS_CACHE=/runpod-volume/hf_cache
 
 WORKDIR /app
+
+# Pre-install Cython as it is required for building 'av' and other dependencies 
+# due to --no-build-isolation
+RUN pip install --no-cache-dir Cython
+
 COPY requirements.txt /app/
 
 # Install Python dependencies
