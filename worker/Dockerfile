@@ -34,9 +34,12 @@ RUN pip install --no-cache-dir Cython
 RUN pip install --no-cache-dir flash-attn --no-build-isolation
 
 # Phase 2: Install cuDNN 8 compatibility layer required by CTranslate2 (faster-whisper).
-# The base image ships cuDNN 9 but CTranslate2 links against libcudnn_ops_infer.so.8
-RUN pip install --no-cache-dir nvidia-cudnn-cu12==8.9.7.29
-ENV LD_LIBRARY_PATH="/usr/local/lib/python3.11/dist-packages/nvidia/cudnn/lib:${LD_LIBRARY_PATH}"
+# The base image ships cuDNN 9 (.so.9) but CTranslate2 links against .so.8
+# We copy the .so.8 files directly into the system lib path so the dynamic linker
+# always finds them, even if RunPod overrides LD_LIBRARY_PATH at runtime.
+RUN pip install --no-cache-dir nvidia-cudnn-cu12==8.9.7.29 && \
+    cp -P /usr/local/lib/python3.11/dist-packages/nvidia/cudnn/lib/libcudnn*.so.8* /usr/lib/x86_64-linux-gnu/ && \
+    ldconfig
 
 COPY requirements.txt /app/
 
