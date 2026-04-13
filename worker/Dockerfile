@@ -9,6 +9,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     git \
     wget \
+    build-essential \
+    libsox-fmt-all \
     && rm -rf /var/lib/apt/lists/*
 
 # Point HuggingFace to Network Volume cache (also set in handler.py at runtime)
