@@ -5,6 +5,22 @@ from uuid import UUID
 from datetime import datetime
 from .base_schema import BaseSchema
 from decimal import Decimal
+
+class PlanFeaturesSchema(BaseModel):
+    export_txt: bool
+    export_pdf: bool
+    export_srt: bool
+    speaker_detection: bool
+    priority_queue: bool
+    api_access: bool
+
+class PlanDetailSchema(BaseModel):
+    max_minutes_per_month: int
+    max_file_size_mb: int
+    max_files_per_month: int
+    allowed_formats: list[str]
+    transcription_languages: list[str]
+    features: PlanFeaturesSchema
 class PlanResponseSchema(BaseSchema):
     id: UUID
     name: str
@@ -30,19 +46,3 @@ class PlanUpdateSchema(BaseSchema):
     plan_details: Optional[PlanDetailSchema] = None
     frequency: Optional[int] = None
     frequency_type: Optional[str] = None
-
-class PlanFeaturesSchema(BaseModel):
-    export_txt: bool
-    export_pdf: bool
-    export_srt: bool
-    speaker_detection: bool
-    priority_queue: bool
-    api_access: bool
-
-class PlanDetailSchema(BaseModel):
-    max_minutes_per_month: int
-    max_file_size_mb: int
-    max_files_per_month: int
-    allowed_formats: list[str]
-    transcription_languages: list[str]
-    features: PlanFeaturesSchema
