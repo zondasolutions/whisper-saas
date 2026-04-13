@@ -27,15 +27,21 @@ ENV TRANSFORMERS_CACHE=/runpod-volume/hf_cache
 
 WORKDIR /app
 
-# Pre-install Cython as it is required for building 'av' and other dependencies 
-# due to --no-build-isolation
+# Pre-install build tools
 RUN pip install --no-cache-dir Cython
+
+# Phase 1: Install flash-attn FIRST while cuDNN 9 is intact (it imports torch during build)
+RUN pip install --no-cache-dir flash-attn --no-build-isolation
+
+# Phase 2: Install cuDNN 8 compatibility layer required by CTranslate2 (faster-whisper).
+# The base image ships cuDNN 9 but CTranslate2 links against libcudnn_ops_infer.so.8
+RUN pip install --no-cache-dir nvidia-cudnn-cu12==8.9.7.29
+ENV LD_LIBRARY_PATH="/usr/local/lib/python3.11/dist-packages/nvidia/cudnn/lib:${LD_LIBRARY_PATH}"
 
 COPY requirements.txt /app/
 
-# Install Python dependencies
-# flash-attn requires --no-build-isolation and takes a while to compile
-RUN pip install --no-cache-dir -r requirements.txt --no-build-isolation
+# Phase 3: Install remaining Python dependencies (whisperx, deepfilternet, etc.)
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY handler.py /app/handler.py
 
