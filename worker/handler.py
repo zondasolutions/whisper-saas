@@ -177,6 +177,7 @@ def handler(job):
     job_input = job['input']
     audio_url = job_input.get('audio_url')
     initial_prompt = job_input.get('initial_prompt')  # Contextual prompt for Whisper decoder
+    language = job_input.get('language')  # Explicit language definition
     return_clean_audio = job_input.get('return_clean_audio', False)  # Admin-only feature
 
     if not audio_url:
@@ -232,7 +233,11 @@ def handler(job):
             safe_prompt = str(initial_prompt).replace('.', ',').replace(':', ' ').replace('\n', ' ')
             whisper_model.options = whisper_model.options._replace(initial_prompt=safe_prompt)
 
-        result = whisper_model.transcribe(audio, batch_size=BATCH_SIZE)
+        transcribe_kwargs = {"batch_size": BATCH_SIZE}
+        if language:
+            transcribe_kwargs["language"] = language
+
+        result = whisper_model.transcribe(audio, **transcribe_kwargs)
 
         # Restore original options for next request
         whisper_model.options = original_options

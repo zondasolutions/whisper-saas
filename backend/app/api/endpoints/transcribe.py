@@ -19,6 +19,7 @@ class TranscribeRequest(BaseModel):
     min_speakers: int | None = None
     max_speakers: int | None = None
     initial_prompt: str | None = None
+    language: str | None = None
 
 @router.post("/transcribe")
 def transcribe_audio(
@@ -89,6 +90,7 @@ def transcribe_audio(
             min_speakers=req.min_speakers,
             max_speakers=req.max_speakers,
             initial_prompt=req.initial_prompt,
+            language=req.language,
             return_clean_audio=is_admin
         )
     except Exception as e:

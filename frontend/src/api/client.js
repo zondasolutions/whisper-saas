@@ -58,13 +58,14 @@ export const apiClient = {
    * Returns { job_id } for polling.
    */
   async transcribe(fileKey, durationSeconds = 0, options = {}) {
-    const { numSpeakers, minSpeakers, maxSpeakers, initialPrompt } = options;
+    const { numSpeakers, minSpeakers, maxSpeakers, initialPrompt, language } = options;
     const bodyArgs = { file_key: fileKey, duration_seconds: Math.ceil(durationSeconds) };
     
     if (numSpeakers) bodyArgs.num_speakers = parseInt(numSpeakers, 10);
     if (minSpeakers) bodyArgs.min_speakers = parseInt(minSpeakers, 10);
     if (maxSpeakers) bodyArgs.max_speakers = parseInt(maxSpeakers, 10);
     if (initialPrompt && initialPrompt.trim()) bodyArgs.initial_prompt = initialPrompt.trim();
+    if (language && language !== 'auto') bodyArgs.language = language;
 
     const response = await fetch(`${API_BASE_URL}/transcribe`, {
       method: 'POST',

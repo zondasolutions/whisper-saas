@@ -17,7 +17,7 @@ export default function AppView() {
     const [status, setStatus] = useState('idle'); // idle | uploading | processing | done
     const [file, setFile] = useState(null);
     const [audioDuration, setAudioDuration] = useState(0); // Stores duration from UploadArea
-    const [diarizationOptions, setDiarizationOptions] = useState({ numSpeakers: '', minSpeakers: '', maxSpeakers: '', initialPrompt: '' });
+    const [diarizationOptions, setDiarizationOptions] = useState({ numSpeakers: '', minSpeakers: '', maxSpeakers: '', initialPrompt: '', language: 'auto' });
     const [result, setResult] = useState(null);
     const [cleanAudioUrl, setCleanAudioUrl] = useState(null);
     const [processingTimeMs, setProcessingTimeMs] = useState(null);
@@ -115,7 +115,7 @@ export default function AppView() {
         setCleanAudioUrl(null);
         setProcessingTimeMs(null);
         setStatus('idle');
-        setDiarizationOptions({ numSpeakers: '', minSpeakers: '', maxSpeakers: '', initialPrompt: '' });
+        setDiarizationOptions({ numSpeakers: '', minSpeakers: '', maxSpeakers: '', initialPrompt: '', language: 'auto' });
     };
 
     return (

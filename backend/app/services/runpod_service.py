@@ -8,6 +8,7 @@ def submit_transcription_job(
     min_speakers: int | None = None,
     max_speakers: int | None = None,
     initial_prompt: str | None = None,
+    language: str | None = None,
     return_clean_audio: bool = False,
 ) -> str:
     """Submits a job to the RunPod serverless endpoint."""
@@ -32,8 +33,10 @@ def submit_transcription_job(
         payload["input"]["min_speakers"] = min_speakers
     if max_speakers is not None:
         payload["input"]["max_speakers"] = max_speakers
-    if initial_prompt:
+    if initial_prompt is not None:
         payload["input"]["initial_prompt"] = initial_prompt
+    if language is not None:
+        payload["input"]["language"] = language
     if return_clean_audio:
         payload["input"]["return_clean_audio"] = True
         
