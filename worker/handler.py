@@ -146,10 +146,8 @@ def handler(job):
         model_a, metadata = get_align_model(language)
         result = whisperx.align(result["segments"], model_a, metadata, audio, DEVICE, return_char_alignments=False)
 
-        # VRAM Optimization: Move Whisper and Align models to CPU before Diarization
-        # This frees up ~7-8GB of VRAM for the heaviest stage.
-        if WHISPER_MODEL:
-            WHISPER_MODEL.model.to("cpu")
+        # VRAM Optimization: Move Align models to CPU before Diarization
+        # Note: WhisperX uses CTranslate2 internally (no .to() method), so we skip it.
         for m_a, _ in ALIGN_MODELS.values():
             m_a.to("cpu")
             
@@ -169,10 +167,6 @@ def handler(job):
             
             diarize_segments = diarize_model(audio, **diarize_kwargs)
             result = whisperx.assign_word_speakers(diarize_segments, result)
-
-            # Move Whisper back to GPU for next jobs (optional, but good for latency)
-            if WHISPER_MODEL:
-                WHISPER_MODEL.model.to(DEVICE)
         
         # Final Format Cleanup
         segments = []
