@@ -225,7 +225,12 @@ def handler(job):
         # avoid leaking context between jobs on the same warm worker.
         original_options = whisper_model.options
         if initial_prompt:
-            whisper_model.options = whisper_model.options._replace(initial_prompt=initial_prompt)
+            # SANITIZATION: Whisper hallucinations happen when the prompt looks like a 
+            # grammatically complete sentence (e.g., ends in a period). Since WhisperX 
+            # passes this prompt to *every* 30s VAD chunk, we must break the syntax so 
+            # the decoder treats it purely as a bag of vocabulary keywords.
+            safe_prompt = str(initial_prompt).replace('.', ',').replace(':', ' ').replace('\n', ' ')
+            whisper_model.options = whisper_model.options._replace(initial_prompt=safe_prompt)
 
         result = whisper_model.transcribe(audio, batch_size=BATCH_SIZE)
 
