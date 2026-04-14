@@ -219,10 +219,18 @@ def handler(job):
         # Step 3: Transcribe with WhisperX
         whisper_model = get_whisper_model()
         audio = whisperx.load_audio(clean_audio_path)
-        transcribe_kwargs = {"batch_size": BATCH_SIZE}
+
+        # WhisperX stores initial_prompt in model.options (a NamedTuple), not as
+        # a transcribe() kwarg. We swap it per-request and restore afterwards to
+        # avoid leaking context between jobs on the same warm worker.
+        original_options = whisper_model.options
         if initial_prompt:
-            transcribe_kwargs["initial_prompt"] = initial_prompt
-        result = whisper_model.transcribe(audio, **transcribe_kwargs)
+            whisper_model.options = whisper_model.options._replace(initial_prompt=initial_prompt)
+
+        result = whisper_model.transcribe(audio, batch_size=BATCH_SIZE)
+
+        # Restore original options for next request
+        whisper_model.options = original_options
 
         # VRAM Optimization: Free transcription KV-cache before alignment
         purge_resources()
