@@ -139,8 +139,8 @@
     "freeToastError": "Free accounts are limited to 3 minutes. Your file is {{minutes}}m {{seconds}}s. Register or trim the audio.",
     "contextPromptTitle": "Transcription Context",
     "contextPromptBadge": "Improves accuracy",
-    "contextPromptHint": "Describe the audio context so the AI better recognizes names, technical terms, and acronyms.",
-    "contextPromptPlaceholder": "E.g.: ZondaSolutions meeting. Participants: Federico Caballero, Martín, Lucía. Project: Voxify. Technologies mentioned: RunPod, WhisperX, DeepFilterNet."
+    "contextPromptHint": "Enter ONLY comma-separated keywords and names. DO NOT use full sentences (prevents ghost repetitions).",
+    "contextPromptPlaceholder": "E.g.: education, subjects, schools, Lidia, math, ZondaSolutions"
   },
   "processing": {
     "uploadTitle": "Encrypting & Uploading…",
@@ -153,8 +153,9 @@
     "diarizingSubtitle": "PyAnnote 3.1 · Speaker Diarization active"
   },
   "result": {
-    "title": "Transcription Ready",
-    "purged": "Ephemeral data purged from servers",
+    "title": "Transcription Completed",
+    "purged": "Audio purged from servers",
+    "completedIn": "Transcription completed in {{time}}",
     "newTranscription": "New Transcription",
     "audioPlayer": "Audio Player",
     "export": "Export",

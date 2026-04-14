@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useToast } from '../common/Toast';
 import { useTranslation } from 'react-i18next';
 
-export default function TranscriptionResult({ result, file, onReset, cleanAudioUrl }) {
+export default function TranscriptionResult({ result, file, onReset, cleanAudioUrl, processingTimeMs }) {
     const [activeSegment, setActiveSegment] = useState(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
@@ -12,6 +12,15 @@ export default function TranscriptionResult({ result, file, onReset, cleanAudioU
     const { t } = useTranslation();
 
     const segments = result?.segments || [];
+
+    // Helper for "completed in" text
+    const formatProcessingTime = (ms) => {
+        if (!ms) return '';
+        const totalSeconds = Math.floor(ms / 1000);
+        const m = Math.floor(totalSeconds / 60);
+        const s = totalSeconds % 60;
+        return m > 0 ? `${m}m ${s}s` : `${s}s`;
+    };
 
     // Create object URL for audio file
     useEffect(() => {
@@ -153,10 +162,18 @@ export default function TranscriptionResult({ result, file, onReset, cleanAudioU
             <div className="flex items-center justify-between mb-8">
                 <div>
                     <h1 className="text-2xl font-bold font-headline text-white">{t('result.title')}</h1>
-                    <p className="text-xs text-secondary mt-1 flex items-center gap-1">
-                        <span className="material-symbols-outlined text-sm">verified_user</span>
-                        {t('result.purged')}
-                    </p>
+                    <div className="mt-1 flex flex-col gap-1 sm:flex-row sm:gap-4 sm:items-center">
+                        <p className="text-xs text-secondary flex items-center gap-1">
+                            <span className="material-symbols-outlined text-sm">verified_user</span>
+                            {t('result.purged')}
+                        </p>
+                        {processingTimeMs && (
+                            <p className="text-xs text-on-surface-variant flex items-center gap-1">
+                                <span className="material-symbols-outlined text-[14px]">timer</span>
+                                {t('result.completedIn', { time: formatProcessingTime(processingTimeMs) })}
+                            </p>
+                        )}
+                    </div>
                 </div>
                 <button onClick={onReset} className="flex items-center gap-2 text-sm text-on-surface-variant hover:text-on-surface transition-colors border border-outline-variant/30 px-4 py-2 rounded-full">
                     <span className="material-symbols-outlined text-lg">add</span>

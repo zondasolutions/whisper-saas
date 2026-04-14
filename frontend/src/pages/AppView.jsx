@@ -20,6 +20,7 @@ export default function AppView() {
     const [diarizationOptions, setDiarizationOptions] = useState({ numSpeakers: '', minSpeakers: '', maxSpeakers: '', initialPrompt: '' });
     const [result, setResult] = useState(null);
     const [cleanAudioUrl, setCleanAudioUrl] = useState(null);
+    const [processingTimeMs, setProcessingTimeMs] = useState(null);
     const { showToast } = useToast();
     const { isLoggedIn, user } = useAuth();
     const { t } = useTranslation();
@@ -27,6 +28,7 @@ export default function AppView() {
     const handleTranscribe = async () => {
         if (!file) return;
 
+        const startTime = Date.now();
         try {
             setStatus('uploading');
             // Step 1 & 2: Get presigned URL and upload directly to R2
@@ -45,6 +47,8 @@ export default function AppView() {
                 const statusRes = await apiClient.getStatus(jobId);
 
                 if (statusRes.status === 'completed') {
+                    const elapsed = Date.now() - startTime;
+                    setProcessingTimeMs(elapsed);
                     setResult(statusRes.transcript);
                     setCleanAudioUrl(statusRes.clean_audio_url || null);
                     setStatus('done');
@@ -109,6 +113,7 @@ export default function AppView() {
         setFile(null);
         setResult(null);
         setCleanAudioUrl(null);
+        setProcessingTimeMs(null);
         setStatus('idle');
         setDiarizationOptions({ numSpeakers: '', minSpeakers: '', maxSpeakers: '', initialPrompt: '' });
     };
@@ -147,7 +152,7 @@ export default function AppView() {
                         )}
 
                         {status === 'done' && (
-                            <TranscriptionResult result={result} file={file} onReset={reset} cleanAudioUrl={cleanAudioUrl} />
+                            <TranscriptionResult result={result} file={file} onReset={reset} cleanAudioUrl={cleanAudioUrl} processingTimeMs={processingTimeMs} />
                         )}
                     </>
                 )}

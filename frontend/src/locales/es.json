@@ -139,8 +139,8 @@
     "freeToastError": "Las cuentas gratuitas tienen un límite de 3 minutos. Tu archivo dura {{minutes}}m {{seconds}}s. Regístrate o acortá el audio.",
     "contextPromptTitle": "Contexto de la Transcripción",
     "contextPromptBadge": "Mejora precisión",
-    "contextPromptHint": "Describí el contexto del audio para que la IA reconozca mejor nombres, términos técnicos y acrónimos.",
-    "contextPromptPlaceholder": "Ej: Reunión de ZondaSolutions. Participantes: Federico Caballero, Martín, Lucía. Proyecto: Voxify. Tecnologías mencionadas: RunPod, WhisperX, DeepFilterNet."
+    "contextPromptHint": "Escribí SOLO palabras clave y nombres separados por comas. NO uses oraciones (evita repeticiones fantasmas).",
+    "contextPromptPlaceholder": "Ej: educación, materias, escuelas, Lidia, matemáticas, ZondaSolutions"
   },
   "processing": {
     "uploadTitle": "Encriptando y Subiendo…",
@@ -153,8 +153,9 @@
     "diarizingSubtitle": "PyAnnote 3.1 · Diarización de Hablantes activa"
   },
   "result": {
-    "title": "Transcripción Lista",
-    "purged": "Datos efímeros eliminados de los servidores",
+    "title": "Transcripción Completada",
+    "purged": "Audio purgado de los servidores",
+    "completedIn": "La transcripción fue realizada en {{time}}",
     "newTranscription": "Nueva Transcripción",
     "audioPlayer": "Reproductor de Audio",
     "export": "Exportar",
