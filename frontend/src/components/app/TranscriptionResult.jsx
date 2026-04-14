@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useToast } from '../common/Toast';
 import { useTranslation } from 'react-i18next';
 
-export default function TranscriptionResult({ result, file, onReset }) {
+export default function TranscriptionResult({ result, file, onReset, cleanAudioUrl }) {
     const [activeSegment, setActiveSegment] = useState(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
@@ -232,6 +232,26 @@ export default function TranscriptionResult({ result, file, onReset }) {
                             {t('result.downloadSrt')}
                         </button>
                     </div>
+
+                    {/* Clean Audio Player (Admin Only) */}
+                    {cleanAudioUrl && (
+                        <div className="mt-4 pt-4 border-t border-outline-variant/20">
+                            <div className="flex items-center gap-2 mb-3">
+                                <span className="material-symbols-outlined text-lg text-secondary">graphic_eq</span>
+                                <p className="text-xs text-on-surface-variant uppercase tracking-widest font-semibold">{t('result.cleanAudio')}</p>
+                                <span className="text-xs bg-secondary/20 text-secondary px-2 py-0.5 rounded-full">DeepFilterNet3</span>
+                            </div>
+                            <audio
+                                controls
+                                src={cleanAudioUrl}
+                                className="w-full h-10 rounded-lg"
+                                style={{ filter: 'hue-rotate(90deg)' }}
+                            />
+                            <p className="text-xs text-on-surface-variant mt-2">
+                                {t('result.cleanAudioHint')}
+                            </p>
+                        </div>
+                    )}
                 </div>
 
                 {/* Transcript */}

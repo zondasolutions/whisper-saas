@@ -5,6 +5,8 @@ import requests
 import json
 import torch
 import gc
+import boto3
+from botocore.config import Config as BotoConfig
 import whisperx
 from df.enhance import enhance, init_df, load_audio, save_audio
 
@@ -15,7 +17,7 @@ os.environ["TRANSFORMERS_CACHE"] = "/runpod-volume/hf_cache"
 # Global Model Caches for zero-latency warm starts
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 COMPUTE_TYPE = "float16" if torch.cuda.is_available() else "int8"
-BATCH_SIZE = 8
+BATCH_SIZE = 16
 
 WHISPER_MODEL = None
 DIARIZE_MODEL = None
@@ -101,9 +103,81 @@ def download_file(url: str, local_path: str):
         for chunk in response.iter_content(chunk_size=65536):
             f.write(chunk)
 
+def upload_clean_audio_to_r2(clean_audio_path: str, temp_id: str, sample_rate: int):
+    """Upload clean audio to R2 for admin preview.
+    
+    - Audio ≤ 10 min: uploads the full clean WAV
+    - Audio > 10 min: uploads only the first 2 minutes as a sample
+    
+    Returns the R2 object key if successful, None otherwise.
+    """
+    import soundfile as sf
+    
+    r2_account_id = os.environ.get("R2_ACCOUNT_ID")
+    r2_access_key = os.environ.get("R2_ACCESS_KEY_ID")
+    r2_secret_key = os.environ.get("R2_SECRET_ACCESS_KEY")
+    r2_bucket = os.environ.get("R2_BUCKET_NAME", "whisper-saas-audio")
+    
+    if not all([r2_account_id, r2_access_key, r2_secret_key]):
+        print("R2 credentials not configured — skipping clean audio upload.")
+        return None
+    
+    # Read the clean audio to check duration
+    audio_data, sr = sf.read(clean_audio_path)
+    total_duration_s = len(audio_data) / sr
+    
+    SAMPLE_THRESHOLD_S = 600  # 10 minutes
+    SAMPLE_DURATION_S = 120   # 2 minutes preview
+    
+    upload_path = clean_audio_path
+    sample_path = None
+    is_sample = False
+    
+    if total_duration_s > SAMPLE_THRESHOLD_S:
+        # Only upload first 2 minutes as a preview sample
+        sample_frames = int(SAMPLE_DURATION_S * sr)
+        sample_data = audio_data[:sample_frames]
+        sample_path = f"/tmp/{temp_id}_clean_sample.wav"
+        sf.write(sample_path, sample_data, sr)
+        upload_path = sample_path
+        is_sample = True
+        print(f"Audio is {total_duration_s:.0f}s (>{SAMPLE_THRESHOLD_S}s) — uploading {SAMPLE_DURATION_S}s sample.")
+    else:
+        print(f"Audio is {total_duration_s:.0f}s (≤{SAMPLE_THRESHOLD_S}s) — uploading full clean audio.")
+    
+    del audio_data  # Free memory
+    
+    # Upload to R2
+    s3_client = boto3.client(
+        's3',
+        endpoint_url=f"https://{r2_account_id}.r2.cloudflarestorage.com",
+        aws_access_key_id=r2_access_key,
+        aws_secret_access_key=r2_secret_key,
+        config=BotoConfig(signature_version='s3v4')
+    )
+    
+    suffix = "_sample" if is_sample else ""
+    object_key = f"clean-audio/{temp_id}{suffix}.wav"
+    
+    s3_client.upload_file(
+        upload_path,
+        r2_bucket,
+        object_key,
+        ExtraArgs={"ContentType": "audio/wav"}
+    )
+    
+    # Clean up sample file if created
+    if sample_path and os.path.exists(sample_path):
+        os.remove(sample_path)
+    
+    print(f"Clean audio uploaded to R2: {object_key}")
+    return object_key
+
 def handler(job):
     job_input = job['input']
     audio_url = job_input.get('audio_url')
+    initial_prompt = job_input.get('initial_prompt')  # Contextual prompt for Whisper decoder
+    return_clean_audio = job_input.get('return_clean_audio', False)  # Admin-only feature
 
     if not audio_url:
         return {"error": "audio_url is required in job input"}
@@ -133,10 +207,22 @@ def handler(job):
         df_model.to("cpu")
         purge_resources()
 
+        # Step 2b: Upload clean audio sample to R2 (admin-only feature)
+        clean_audio_key = None
+        if return_clean_audio:
+            try:
+                clean_audio_key = upload_clean_audio_to_r2(clean_audio_path, temp_id, df_state.sr())
+            except Exception as e:
+                print(f"Warning: Failed to upload clean audio to R2: {e}")
+                clean_audio_key = None
+
         # Step 3: Transcribe with WhisperX
         whisper_model = get_whisper_model()
         audio = whisperx.load_audio(clean_audio_path)
-        result = whisper_model.transcribe(audio, batch_size=BATCH_SIZE)
+        transcribe_kwargs = {"batch_size": BATCH_SIZE}
+        if initial_prompt:
+            transcribe_kwargs["initial_prompt"] = initial_prompt
+        result = whisper_model.transcribe(audio, **transcribe_kwargs)
 
         # VRAM Optimization: Free transcription KV-cache before alignment
         purge_resources()
@@ -177,10 +263,14 @@ def handler(job):
                 "text": segment.get("text", "").strip(),
             })
 
-        return {
+        response = {
             "status": "success",
             "transcript": {"segments": segments},
         }
+        if clean_audio_key:
+            response["clean_audio_key"] = clean_audio_key
+
+        return response
 
     except Exception as e:
         import traceback

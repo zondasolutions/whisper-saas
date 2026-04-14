@@ -136,7 +136,11 @@
     "maxSpeakers": "Máx. Hablantes",
     "transcribeBtn": "Transcribir Ahora",
     "freeLimit": "Transcripciones sin registro: máx. 3 minutos.",
-    "freeToastError": "Las cuentas gratuitas tienen un límite de 3 minutos. Tu archivo dura {{minutes}}m {{seconds}}s. Regístrate o acortá el audio."
+    "freeToastError": "Las cuentas gratuitas tienen un límite de 3 minutos. Tu archivo dura {{minutes}}m {{seconds}}s. Regístrate o acortá el audio.",
+    "contextPromptTitle": "Contexto de la Transcripción",
+    "contextPromptBadge": "Mejora precisión",
+    "contextPromptHint": "Describí el contexto del audio para que la IA reconozca mejor nombres, términos técnicos y acrónimos.",
+    "contextPromptPlaceholder": "Ej: Reunión de ZondaSolutions. Participantes: Federico Caballero, Martín, Lucía. Proyecto: Voxify. Tecnologías mencionadas: RunPod, WhisperX, DeepFilterNet."
   },
   "processing": {
     "uploadTitle": "Encriptando y Subiendo…",
@@ -163,7 +167,9 @@
     "txtDownload": "Archivo TXT descargado",
     "srtDownload": "Archivo SRT descargado",
     "noSrtSegments": "No hay segmentos disponibles para SRT",
-    "speaker": "Hablante"
+    "speaker": "Hablante",
+    "cleanAudio": "Audio Limpio",
+    "cleanAudioHint": "Muestra del audio procesado por DeepFilterNet3. Compará con el original para evaluar la eliminación de ruido."
   },
   "history": {
     "title": "Historial Privado",

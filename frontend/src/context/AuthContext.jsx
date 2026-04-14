@@ -25,7 +25,7 @@ export const AuthProvider = ({ children }) => {
                     apiClient.setToken(token);
                     setIsLoggedIn(true);
                     const decoded = decodeJwt(token);
-                    setUser({ token, id: decoded?.sub }); // Store the subject (id) 
+                    setUser({ token, id: decoded?.sub, is_admin: decoded?.is_admin || false }); // Store the subject (id) 
                 } catch (error) {
                     logout();
                 }
@@ -42,7 +42,7 @@ export const AuthProvider = ({ children }) => {
         apiClient.setToken(access_token);
         setIsLoggedIn(true);
         const decoded = decodeJwt(access_token);
-        setUser({ token: access_token, id: decoded?.sub });
+        setUser({ token: access_token, id: decoded?.sub, is_admin: decoded?.is_admin || false });
     };
 
     const register = async (name, email, password) => {

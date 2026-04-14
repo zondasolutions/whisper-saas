@@ -18,6 +18,7 @@ class TranscribeRequest(BaseModel):
     num_speakers: int | None = None
     min_speakers: int | None = None
     max_speakers: int | None = None
+    initial_prompt: str | None = None
 
 @router.post("/transcribe")
 def transcribe_audio(
@@ -79,11 +80,16 @@ def transcribe_audio(
         raise HTTPException(status_code=500, detail=f"Failed to generate read URL: {str(e)}")
 
     try:
+        # Admin users get the clean audio preview feature
+        is_admin = user and getattr(user, "is_admin", False)
+
         job_id = submit_transcription_job(
             audio_url=read_url,
             num_speakers=req.num_speakers,
             min_speakers=req.min_speakers,
-            max_speakers=req.max_speakers
+            max_speakers=req.max_speakers,
+            initial_prompt=req.initial_prompt,
+            return_clean_audio=is_admin
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

@@ -1,6 +1,7 @@
 import requests
 from fastapi import APIRouter, HTTPException
 from app.core.config import settings
+from app.services.s3_service import generate_presigned_download_url
 
 router = APIRouter()
 
@@ -28,10 +29,19 @@ def get_job_status(job_id: str):
 
         if status == "COMPLETED":
             output = data.get("output", {})
-            return {
+            result = {
                 "status": "completed",
                 "transcript": output.get("transcript"),
             }
+            # If the worker uploaded a clean audio file, generate a download URL
+            clean_audio_key = output.get("clean_audio_key")
+            if clean_audio_key:
+                try:
+                    result["clean_audio_url"] = generate_presigned_download_url(clean_audio_key, expires_in=3600)
+                    result["clean_audio_is_sample"] = "_sample" in clean_audio_key
+                except Exception:
+                    pass  # Non-critical — don't fail the whole response
+            return result
         elif status == "FAILED":
             return {
                 "status": "failed",

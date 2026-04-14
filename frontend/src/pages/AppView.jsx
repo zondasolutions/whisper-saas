@@ -17,8 +17,9 @@ export default function AppView() {
     const [status, setStatus] = useState('idle'); // idle | uploading | processing | done
     const [file, setFile] = useState(null);
     const [audioDuration, setAudioDuration] = useState(0); // Stores duration from UploadArea
-    const [diarizationOptions, setDiarizationOptions] = useState({ numSpeakers: '', minSpeakers: '', maxSpeakers: '' });
+    const [diarizationOptions, setDiarizationOptions] = useState({ numSpeakers: '', minSpeakers: '', maxSpeakers: '', initialPrompt: '' });
     const [result, setResult] = useState(null);
+    const [cleanAudioUrl, setCleanAudioUrl] = useState(null);
     const { showToast } = useToast();
     const { isLoggedIn, user } = useAuth();
     const { t } = useTranslation();
@@ -45,6 +46,7 @@ export default function AppView() {
 
                 if (statusRes.status === 'completed') {
                     setResult(statusRes.transcript);
+                    setCleanAudioUrl(statusRes.clean_audio_url || null);
                     setStatus('done');
 
                     if (isLoggedIn && user?.id) {
@@ -106,7 +108,9 @@ export default function AppView() {
     const reset = () => {
         setFile(null);
         setResult(null);
+        setCleanAudioUrl(null);
         setStatus('idle');
+        setDiarizationOptions({ numSpeakers: '', minSpeakers: '', maxSpeakers: '', initialPrompt: '' });
     };
 
     return (
@@ -143,7 +147,7 @@ export default function AppView() {
                         )}
 
                         {status === 'done' && (
-                            <TranscriptionResult result={result} file={file} onReset={reset} />
+                            <TranscriptionResult result={result} file={file} onReset={reset} cleanAudioUrl={cleanAudioUrl} />
                         )}
                     </>
                 )}

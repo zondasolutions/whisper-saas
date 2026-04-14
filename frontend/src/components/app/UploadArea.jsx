@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 
 export default function UploadArea({ file, setFile, setAudioDuration, onTranscribe, diarizationOptions, setDiarizationOptions }) {
     const [isDragging, setIsDragging] = useState(false);
+    const [promptOpen, setPromptOpen] = useState(false);
     const fileInputRef = useRef(null);
     const { showToast } = useToast();
     const { isLoggedIn } = useAuth();
@@ -152,6 +153,33 @@ export default function UploadArea({ file, setFile, setAudioDuration, onTranscri
                                 />
                             </div>
                         </div>
+                    </div>
+
+                    {/* Context Prompt Section */}
+                    <div className="border-t border-outline-variant/20 pt-4 mt-2">
+                        <button
+                            type="button"
+                            onClick={() => setPromptOpen(prev => !prev)}
+                            className="flex items-center gap-2 w-full text-left group"
+                        >
+                            <span className={`material-symbols-outlined text-base text-on-surface-variant transition-transform duration-200 ${promptOpen ? 'rotate-90' : ''}`}>
+                                chevron_right
+                            </span>
+                            <h3 className="text-base font-semibold text-on-surface">{t('upload.contextPromptTitle')}</h3>
+                            <span className="text-xs text-on-surface-variant bg-surface-container px-2 py-0.5 rounded-full">{t('upload.contextPromptBadge')}</span>
+                        </button>
+                        <p className="text-sm text-on-surface-variant mt-1 ml-6">{t('upload.contextPromptHint')}</p>
+
+                        {promptOpen && (
+                            <textarea
+                                className="w-full mt-3 bg-surface-container text-on-surface px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none text-sm leading-relaxed placeholder:text-on-surface-variant/50"
+                                rows={3}
+                                maxLength={500}
+                                placeholder={t('upload.contextPromptPlaceholder')}
+                                value={diarizationOptions?.initialPrompt || ''}
+                                onChange={(e) => setDiarizationOptions(prev => ({ ...prev, initialPrompt: e.target.value }))}
+                            />
+                        )}
                     </div>
                 </div>
             )}

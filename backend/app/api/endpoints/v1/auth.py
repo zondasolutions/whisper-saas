@@ -19,5 +19,8 @@ def login(db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = 
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    access_token = create_access_token(subject=str(user.id))
+    access_token = create_access_token(
+        subject=str(user.id),
+        extra_claims={"is_admin": bool(user.is_admin)}
+    )
     return {"access_token": access_token, "token_type": "bearer"}
