@@ -101,6 +101,13 @@ test_env/
 *.swp
 *.swo
 .DS_Store
+
+
+# ========================
+# Skills
+# ==========================
+.agents/
+skills-lock.json
 Thumbs.db
 
 GEMINI.md
