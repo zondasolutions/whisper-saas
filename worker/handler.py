@@ -272,19 +272,19 @@ def handler(job):
             diarize_segments = diarize_model(audio, **diarize_kwargs)
             result = whisperx.assign_word_speakers(diarize_segments, result)
         
-        # Final Format Cleanup
+        # Final Format Cleanup — remap speaker IDs by order of first appearance
+        # PyAnnote assigns arbitrary cluster IDs (SPEAKER_02 may appear before SPEAKER_00),
+        # so we renumber them sequentially: first speaker seen = Speaker 1, etc.
+        speaker_order = {}  # maps raw PyAnnote ID -> sequential number
         segments = []
         for segment in result.get("segments", []):
             raw_spk = segment.get("speaker")
-            if raw_spk and raw_spk.startswith("SPEAKER_"):
-                # Convert SPEAKER_00 to Speaker 1
-                try:
-                    spk_num = int(raw_spk.split("_")[1]) + 1
-                    formatted_spk = f"Speaker {spk_num}"
-                except:
-                    formatted_spk = raw_spk
+            if raw_spk:
+                if raw_spk not in speaker_order:
+                    speaker_order[raw_spk] = len(speaker_order) + 1
+                formatted_spk = f"Speaker {speaker_order[raw_spk]}"
             else:
-                formatted_spk = raw_spk
+                formatted_spk = None
 
             segments.append({
                 "speaker": formatted_spk,
