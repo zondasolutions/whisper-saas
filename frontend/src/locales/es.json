@@ -154,7 +154,13 @@
     "transcribingTitle": "La IA está Transcribiendo en GPU…",
     "transcribingSubtitle": "Modelo Whisper Large-v3 · Alineación Forzada activa",
     "diarizingTitle": "Identificando Hablantes…",
-    "diarizingSubtitle": "PyAnnote 3.1 · Diarización de Hablantes activa"
+    "diarizingSubtitle": "PyAnnote 3.1 · Diarización de Hablantes activa",
+    "dynamic1": "Iniciando motor de IA...",
+    "dynamic2": "Analizando espectro de audio...",
+    "dynamic3": "Aplicando reducción de ruido...",
+    "dynamic4": "Alineando fonética...",
+    "dynamic5": "Generando partición de hablantes...",
+    "dynamic6": "Preparando resultados finales..."
   },
   "result": {
     "title": "Transcripción Completada",

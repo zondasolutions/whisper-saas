@@ -8,14 +8,7 @@ const PIPELINE_STEPS = [
     { id: 'diarizing',   icon: 'group',        titleKey: 'processing.diarizingTitle',   subtitleKey: 'processing.diarizingSubtitle',   color: 'primary' },
 ];
 
-const DYNAMIC_PHRASES = [
-    "Iniciando motor de IA...",
-    "Analizando espectro de audio...",
-    "Limpiando ruido de fondo...",
-    "Alineando fonética...",
-    "Generando partición de hablantes...",
-    "Preparando resultados finales..."
-];
+
 
 export default function ProcessingStatus({ status }) {
     const [activeStep, setActiveStep] = useState(0);
@@ -34,7 +27,7 @@ export default function ProcessingStatus({ status }) {
     useEffect(() => {
         if (status === 'processing') {
             const interval = setInterval(() => {
-                setPhraseIndex(prev => (prev + 1) % DYNAMIC_PHRASES.length);
+                setPhraseIndex(prev => (prev + 1) % 6);
             }, 3500);
             return () => clearInterval(interval);
         }
@@ -100,8 +93,8 @@ export default function ProcessingStatus({ status }) {
             <div className="flex flex-col items-center gap-2 min-h-[4rem]">
                 <p className="text-on-surface-variant font-mono text-xl tracking-widest bg-surface-container/50 px-4 py-1.5 rounded-full shadow-inner">{formatTime(elapsed)}</p>
                 {status === 'processing' && (
-                    <p className="text-secondary text-sm font-medium tracking-wide animate-pulse">
-                        {DYNAMIC_PHRASES[phraseIndex]}
+                    <p key={phraseIndex} className="text-secondary text-sm font-medium tracking-wide opacity-100 transition-opacity duration-1000 ease-in" style={{ animation: 'none' }}>
+                        {t(`processing.dynamic${phraseIndex + 1}`)}
                     </p>
                 )}
             </div>

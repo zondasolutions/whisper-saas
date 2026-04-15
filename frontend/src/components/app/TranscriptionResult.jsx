@@ -12,6 +12,8 @@ export default function TranscriptionResult({ result, file, onReset, cleanAudioU
     const [editableSegments, setEditableSegments] = useState([]);
     const [editingIndex, setEditingIndex] = useState(null);
     const [editValue, setEditValue] = useState("");
+    const [editingSpeakerIndex, setEditingSpeakerIndex] = useState(null);
+    const [editSpeakerValue, setEditSpeakerValue] = useState("");
     
     const audioRef = useRef(null);
     const { showToast } = useToast();
@@ -144,6 +146,31 @@ export default function TranscriptionResult({ result, file, onReset, cleanAudioU
         newSegments[index].text = editValue;
         setEditableSegments(newSegments);
         setEditingIndex(null);
+    };
+
+    const handleSpeakerEditStart = (index, currentSpeaker) => {
+        setEditingSpeakerIndex(index);
+        setEditSpeakerValue(currentSpeaker || `${t('result.speaker')} ${index % 2 === 0 ? 1 : 2}`);
+    };
+
+    const handleSpeakerEditSave = (index, updateAll) => {
+        const newSegments = [...editableSegments];
+        const oldSpeaker = newSegments[index].speaker || `${t('result.speaker')} ${index % 2 === 0 ? 1 : 2}`;
+        const newSpeaker = editSpeakerValue.trim() || oldSpeaker;
+
+        if (updateAll) {
+            newSegments.forEach(seg => {
+                const segSpk = seg.speaker || `${t('result.speaker')} ${newSegments.indexOf(seg) % 2 === 0 ? 1 : 2}`;
+                if (segSpk === oldSpeaker) {
+                    seg.speaker = newSpeaker;
+                }
+            });
+        } else {
+            newSegments[index].speaker = newSpeaker;
+        }
+
+        setEditableSegments(newSegments);
+        setEditingSpeakerIndex(null);
     };
 
     // Exports
@@ -401,11 +428,38 @@ export default function TranscriptionResult({ result, file, onReset, cleanAudioU
                                 >
                                     <div className="flex items-center justify-between mb-2">
                                         <div className="flex items-center gap-3">
-                                            <span
-                                                className={`px-3 py-1 rounded-full text-xs font-bold font-mono tracking-wide ${getSpeakerColor(seg.speaker)}`}
-                                            >
-                                                {seg.speaker || `${t('result.speaker')} ${i % 2 === 0 ? 1 : 2}`}
-                                            </span>
+                                            {editingSpeakerIndex === i ? (
+                                                <div className="flex bg-surface-container-high rounded-full overflow-hidden shadow-inner border border-white/10" onClick={e => e.stopPropagation()}>
+                                                    <input 
+                                                        type="text" 
+                                                        className="bg-transparent text-xs font-bold px-3 py-1 outline-none text-white w-24 placeholder-on-surface-variant/50"
+                                                        value={editSpeakerValue}
+                                                        onChange={e => setEditSpeakerValue(e.target.value)}
+                                                        autoFocus
+                                                        onKeyDown={e => {
+                                                            if (e.key === 'Enter') handleSpeakerEditSave(i, e.ctrlKey || e.metaKey);
+                                                            if (e.key === 'Escape') setEditingSpeakerIndex(null);
+                                                        }}
+                                                    />
+                                                    <button onClick={() => handleSpeakerEditSave(i, false)} title="Rename only this segment" className="px-2 hover:bg-primary/20 text-on-surface-variant transition-colors border-l border-white/5">
+                                                        <span className="material-symbols-outlined text-[14px]">done</span>
+                                                    </button>
+                                                    <button onClick={() => handleSpeakerEditSave(i, true)} title="Rename all segments with this speaker" className="px-2 hover:bg-primary/20 text-on-surface-variant transition-colors border-l border-white/5">
+                                                        <span className="material-symbols-outlined text-[14px]">done_all</span>
+                                                    </button>
+                                                    <button onClick={() => setEditingSpeakerIndex(null)} className="px-2 hover:bg-error/20 text-error transition-colors border-l border-white/5">
+                                                        <span className="material-symbols-outlined text-[14px]">close</span>
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <span
+                                                    className={`px-3 py-1 rounded-full text-xs font-bold font-mono tracking-wide cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all ${getSpeakerColor(seg.speaker)}`}
+                                                    onClick={(e) => { e.stopPropagation(); handleSpeakerEditStart(i, seg.speaker); }}
+                                                    title="Click to rename speaker"
+                                                >
+                                                    {seg.speaker || `${t('result.speaker')} ${i % 2 === 0 ? 1 : 2}`}
+                                                </span>
+                                            )}
                                             <span className="text-xs text-on-surface-variant font-mono bg-surface-container-high px-2 py-0.5 rounded-md">{formatTime(seg.start)}</span>
                                         </div>
                                         <div className="opacity-0 group-hover:opacity-100 transition-opacity">

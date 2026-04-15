@@ -275,8 +275,19 @@ def handler(job):
         # Final Format Cleanup
         segments = []
         for segment in result.get("segments", []):
+            raw_spk = segment.get("speaker")
+            if raw_spk and raw_spk.startswith("SPEAKER_"):
+                # Convert SPEAKER_00 to Speaker 1
+                try:
+                    spk_num = int(raw_spk.split("_")[1]) + 1
+                    formatted_spk = f"Speaker {spk_num}"
+                except:
+                    formatted_spk = raw_spk
+            else:
+                formatted_spk = raw_spk
+
             segments.append({
-                "speaker": segment.get("speaker", "Speaker 1"),
+                "speaker": formatted_spk,
                 "start": segment.get("start", 0),
                 "text": segment.get("text", "").strip(),
             })
